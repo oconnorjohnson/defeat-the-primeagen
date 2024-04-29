@@ -2,8 +2,16 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      hello from the game!
-    </main>
+    <>
+      <Image
+        src="/background.png"
+        alt="background"
+        className="absolute inset-0 z-100 h-screen w-screen"
+        layout="fill"
+      />
+      <div className="min-h-screen flex flex-col text-white text-center justify-center items-center">
+        hello from the game!
+      </div>
+    </>
   );
 }
