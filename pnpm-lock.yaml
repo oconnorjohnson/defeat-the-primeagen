@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@rive-app/react-canvas':
+    specifier: ^4.9.2
+    version: 4.9.2(react@18.3.1)
   framer-motion:
     specifier: ^11.1.7
     version: 11.1.7(react-dom@18.3.1)(react@18.3.1)
@@ -278,6 +281,19 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@rive-app/canvas@2.15.2:
+    resolution: {integrity: sha512-K3cpd+F7DyiRYUpfO0rgrf5Cka1ZcH97nu9Ou/xij3c9UsBF+jjGpVscTeJVvaYITQ1R7YYlThV2GayWN0ogQA==}
+    dev: false
+
+  /@rive-app/react-canvas@4.9.2(react@18.3.1):
+    resolution: {integrity: sha512-lHSkdGyYCziG1H5va2Ku3sXXzvotcs/MrlCHKBrxPdPP9Uyxoug3V5DHBsLqFKxE9gjeVBT4yZCBojKrGHTcOw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@rive-app/canvas': 2.15.2
+      react: 18.3.1
+    dev: false
 
   /@rushstack/eslint-patch@1.10.2:
     resolution: {integrity: sha512-hw437iINopmQuxWPSUEvqE56NCPsiU8N4AYtfHmJFckclktzK9YQJieD3XkDCDH4OjL+C7zgPUh73R/nrcHrqw==}
