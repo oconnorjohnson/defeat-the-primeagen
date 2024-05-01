@@ -25,21 +25,21 @@ export default function Simple() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") {
+      if (event.key === "f") {
         setTriggerLeftThumb(true); // Trigger Left thumb on left arrow key press
-      } else if (event.key === "ArrowRight") {
-        setTriggerRightThumb(true); // Trigger Right thumb on right arrow key press
-      } else if (event.key === "s") {
-        setTriggerRightIndex(true); // Trigger Right index on up arrow key press
-      } else if (event.key === "d") {
-        setTriggerRightRing(true); // Trigger Right ring on down arrow key press
-      } else if (event.key === "f") {
-        setTriggerRightPinky(true); // Trigger Right pinky on space key press
       } else if (event.key === "j") {
-        setTriggerLeftIndex(true); // Trigger Left index on left arrow key press
+        setTriggerRightThumb(true); // Trigger Right thumb on right arrow key press
       } else if (event.key === "k") {
-        setTriggerLeftRing(true); // Trigger Left ring on right arrow key press
+        setTriggerRightIndex(true); // Trigger Right index on up arrow key press
       } else if (event.key === "l") {
+        setTriggerRightRing(true); // Trigger Right ring on down arrow key press
+      } else if (event.key === ";") {
+        setTriggerRightPinky(true); // Trigger Right pinky on space key press
+      } else if (event.key === "d") {
+        setTriggerLeftIndex(true); // Trigger Left index on left arrow key press
+      } else if (event.key === "s") {
+        setTriggerLeftRing(true); // Trigger Left ring on right arrow key press
+      } else if (event.key === "a") {
         setTriggerLeftPinky(true); // Trigger Left pinky on up arrow key press
       }
     };
