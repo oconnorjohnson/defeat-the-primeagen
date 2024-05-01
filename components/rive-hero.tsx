@@ -53,22 +53,18 @@ export default function RiveHero() {
     }
   };
 
-  // Example buttons to trigger the animations
   return (
     <div
-      className="bg-[#09090E] relative rive-canvas-container w-full h-full"
-      style={{ width: "100%", height: "100%" }}
+      className="rive-canvas-container w-full h-full"
+      style={{ width: "100vw", height: "100vh", overflow: "hidden" }}
       ref={setContainerRef}
     >
       <canvas
-        className="bg-[#09090E] rive-canvas block relative w-full h-full max-h-screen max-w-screen align-top"
+        className="rive-canvas absolute top-0 left-0 w-full h-full"
         ref={setCanvasRef}
         style={{ width: "100%", height: "100%" }}
         aria-label="Hero element for the Explore page; an interactive graphic showing planets thru a spacesuit visor"
       ></canvas>
-      <RiveCanvas />
-      <button onClick={triggerRightThumb}>Trigger Right Thumb</button>
-      <button onClick={triggerLeftThumb}>Trigger Left Thumb</button>
     </div>
   );
 }
