@@ -7,8 +7,8 @@ import {
   Fit,
   Alignment,
 } from "@rive-app/react-canvas";
-import RiveCanvas from "@/components/rive-canvas";
-
+import { useAtom } from "jotai";
+import { triggerRightThumbAtom, triggerLeftThumbAtom } from "@/state/atoms";
 export default function RiveHero() {
   const {
     rive,
@@ -39,19 +39,24 @@ export default function RiveHero() {
   );
   const leftThumb = useStateMachineInput(rive, "State Machine 1", "leftThumb");
 
-  // Function to activate the rightThumb trigger
-  const triggerRightThumb = () => {
-    if (rightThumb) {
-      rightThumb.fire();
-    }
-  };
+  const [triggerRightThumb, setTriggerRightThumb] = useAtom(
+    triggerRightThumbAtom
+  );
+  const [triggerLeftThumb, setTriggerLeftThumb] = useAtom(triggerLeftThumbAtom);
 
-  // Function to activate the leftThumb trigger
-  const triggerLeftThumb = () => {
-    if (leftThumb) {
-      leftThumb.fire();
+  useEffect(() => {
+    if (triggerRightThumb && rightThumb) {
+      rightThumb.fire();
+      setTriggerRightThumb(false);
     }
-  };
+  }, [triggerRightThumb, rightThumb, setTriggerRightThumb]);
+
+  useEffect(() => {
+    if (triggerLeftThumb && leftThumb) {
+      leftThumb.fire();
+      setTriggerLeftThumb(false);
+    }
+  }, [triggerLeftThumb, leftThumb, setTriggerLeftThumb]);
 
   return (
     <div
