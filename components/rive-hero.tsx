@@ -31,8 +31,29 @@ export default function RiveHero() {
       shouldResizeCanvasToContainer: true,
     }
   );
+  // Use useStateMachineInput to get the triggers
+  const rightThumb = useStateMachineInput(
+    rive,
+    "State Machine 1",
+    "rightThumb"
+  );
+  const leftThumb = useStateMachineInput(rive, "State Machine 1", "leftThumb");
 
-  // control triggers go here
+  // Function to activate the rightThumb trigger
+  const triggerRightThumb = () => {
+    if (rightThumb) {
+      rightThumb.fire();
+    }
+  };
+
+  // Function to activate the leftThumb trigger
+  const triggerLeftThumb = () => {
+    if (leftThumb) {
+      leftThumb.fire();
+    }
+  };
+
+  // Example buttons to trigger the animations
   return (
     <div
       className="bg-[#09090E] relative rive-canvas-container w-full h-full"
@@ -46,6 +67,8 @@ export default function RiveHero() {
         aria-label="Hero element for the Explore page; an interactive graphic showing planets thru a spacesuit visor"
       ></canvas>
       <RiveCanvas />
+      <button onClick={triggerRightThumb}>Trigger Right Thumb</button>
+      <button onClick={triggerLeftThumb}>Trigger Left Thumb</button>
     </div>
   );
 }
