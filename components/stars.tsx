@@ -57,7 +57,7 @@ export const AuroraHero = ({ children }: { children: React.ReactNode }) => {
     >
       <div className="absolute inset-0 z-0">
         <Canvas>
-          <MouseMoveEffect />
+          {/* <MouseMoveEffect /> */}
           <Stars radius={50} count={5500} factor={5} fade speed={4} />
         </Canvas>
       </div>
