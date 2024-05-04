@@ -8,3 +8,4 @@ export const triggerLeftThumbAtom = atom(false);
 export const triggerLeftIndexAtom = atom(false);
 export const triggerLeftRingAtom = atom(false);
 export const triggerLeftPinkyAtom = atom(false);
+export const viewportDimensionsAtom = atom({ width: 800, height: 600 });

@@ -63,8 +63,8 @@ export default function Simple() {
   return (
     <>
       <RiveHero />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-        hello
+      <div className="absolute top-1 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+        <div className="bg-white w-[825px]">hello</div>
       </div>
     </>
   );
