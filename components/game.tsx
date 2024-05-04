@@ -1,14 +1,17 @@
 "use client";
-import { useEffect, useRef } from "react";
-import Phaser from "phaser";
+import { useEffect, useRef, useState } from "react";
+
+type PhaserType = typeof import("phaser");
 
 class MainScene extends Phaser.Scene {
   player!: Phaser.Physics.Arcade.Sprite;
 
-  constructor() {
+  constructor(phaser: PhaserType) {
     super({ key: "MainScene" });
+    this.phaser = phaser; // store phaser ref
   }
 
+  phaser: PhaserType; // add phaser property
   preload() {
     this.load.image("ship", "assets/ship.png");
   }
@@ -19,34 +22,42 @@ class MainScene extends Phaser.Scene {
   }
 
   update() {
-    // Player movement logic here
+    // add play movement logic here
   }
 }
+
 const GameComponent = () => {
   const gameRef = useRef<HTMLDivElement>(null);
+  const [phaser, setPhaser] = useState<PhaserType | null>(null);
 
   useEffect(() => {
-    if (gameRef.current) {
+    import("phaser").then((module) => {
+      setPhaser(module);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (phaser && gameRef.current) {
       const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
+        type: phaser.AUTO,
         width: 800,
         height: 600,
         physics: {
           default: "arcade",
           arcade: {
-            gravity: { y: 0, x: 0 }, // No gravity in space
+            gravity: { y: 200, x: 0 },
             debug: false,
           },
         },
-        scene: [MainScene], // Use the extended scene with the player property
+        scene: [new MainScene(phaser)], // Pass Phaser to the scene
       };
 
-      const game = new Phaser.Game(config);
+      const game = new phaser.Game(config);
       return () => {
         game.destroy(true);
       };
     }
-  }, []);
+  }, [phaser]);
 
   return <div ref={gameRef} />;
 };
