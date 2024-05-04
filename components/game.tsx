@@ -29,7 +29,21 @@ class MainScene extends Phaser.Scene {
 const GameComponent = () => {
   const gameRef = useRef<HTMLDivElement>(null);
   const [phaser, setPhaser] = useState<PhaserType | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 825, height: 575 });
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 1280) {
+        // Tailwind's 'xl' breakpoint
+        setDimensions({ width: 905, height: 630 });
+      } else {
+        setDimensions({ width: 825, height: 575 });
+      }
+    }
 
+    handleResize(); // Set initial size
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     import("phaser").then((module) => {
       setPhaser(module);
@@ -40,8 +54,8 @@ const GameComponent = () => {
     if (phaser && gameRef.current) {
       const config: Phaser.Types.Core.GameConfig = {
         type: phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: dimensions.width,
+        height: dimensions.height,
         physics: {
           default: "arcade",
           arcade: {
