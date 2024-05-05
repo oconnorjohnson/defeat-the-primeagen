@@ -54,9 +54,17 @@ const GameComponent = dynamic(
         }
 
         update() {
-          if (this.cursors.left.isDown) {
+          if (
+            this.input.keyboard!.checkDown(
+              this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
+            )
+          ) {
             this.player.setVelocityX(-160);
-          } else if (this.cursors.right.isDown) {
+          } else if (
+            this.input.keyboard!.checkDown(
+              this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L)
+            )
+          ) {
             this.player.setVelocityX(160);
           } else {
             this.player.setVelocityX(0);
