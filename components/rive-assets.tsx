@@ -7,18 +7,21 @@ import {
   Fit,
   Alignment,
 } from "@rive-app/react-canvas";
-import { useAtom } from "jotai";
 import {
   triggerRightThumbAtom,
-  triggerLeftThumbAtom,
   triggerRightIndexAtom,
   triggerRightRingAtom,
   triggerRightPinkyAtom,
+  triggerLeftThumbAtom,
   triggerLeftIndexAtom,
   triggerLeftRingAtom,
   triggerLeftPinkyAtom,
 } from "@/state/atoms";
-export default function RiveHero() {
+import { useAtom } from "jotai";
+
+export function RiveServers() {
+  // servers component
+
   const {
     rive,
     setCanvasRef,
@@ -27,11 +30,11 @@ export default function RiveHero() {
     container: containerRef,
   } = useRive(
     {
-      src: "/wrapper.riv",
+      src: "/servers.riv",
       artboard: "New Artboard",
       stateMachines: "State Machine 1",
       layout: new Layout({
-        fit: Fit.Contain,
+        fit: Fit.Cover,
         alignment: Alignment.TopCenter,
       }),
       autoplay: true,
@@ -40,7 +43,47 @@ export default function RiveHero() {
       shouldResizeCanvasToContainer: true,
     }
   );
-  // Use useStateMachineInput to get the triggers
+
+  return (
+    <div
+      className="rive-canvas-container w-full h-full z-[-50] relative"
+      style={{ width: "100vw", height: "100vh", overflow: "hidden" }}
+      ref={setContainerRef}
+    >
+      <canvas
+        className="rive-canvas absolute top-0 left-0 w-full h-full"
+        ref={setCanvasRef}
+        style={{ width: "100%", height: "100%" }}
+        aria-label="game wrapper that displays a perspective of a cyborg at a computer with a split keyboard in a server room"
+      ></canvas>
+    </div>
+  );
+}
+
+export function RiveHands() {
+  // hands component
+  const {
+    rive,
+    setCanvasRef,
+    setContainerRef,
+    canvas: canvasRef,
+    container: containerRef,
+  } = useRive(
+    {
+      src: "/hands.riv",
+      artboard: "New Artboard",
+      stateMachines: "State Machine 1",
+      layout: new Layout({
+        fit: Fit.Cover,
+        alignment: Alignment.BottomCenter,
+      }),
+      autoplay: true,
+    },
+    {
+      shouldResizeCanvasToContainer: true,
+    }
+  );
+  // use useStateMachineInput to get the finger triggers
   const rightThumb = useStateMachineInput(
     rive,
     "State Machine 1",
@@ -65,7 +108,6 @@ export default function RiveHero() {
   const [triggerRightThumb, setTriggerRightThumb] = useAtom(
     triggerRightThumbAtom
   );
-
   const [triggerRightIndex, setTriggerRightIndex] = useAtom(
     triggerRightIndexAtom
   );
@@ -74,7 +116,6 @@ export default function RiveHero() {
     triggerRightPinkyAtom
   );
   const [triggerLeftThumb, setTriggerLeftThumb] = useAtom(triggerLeftThumbAtom);
-
   const [triggerLeftIndex, setTriggerLeftIndex] = useAtom(triggerLeftIndexAtom);
   const [triggerLeftRing, setTriggerLeftRing] = useAtom(triggerLeftRingAtom);
   const [triggerLeftPinky, setTriggerLeftPinky] = useAtom(triggerLeftPinkyAtom);

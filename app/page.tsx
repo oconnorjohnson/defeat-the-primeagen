@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-import RiveHero from "@/components/rive-hero";
 import { useAtom } from "jotai";
 import {
   triggerRightThumbAtom,
@@ -12,6 +11,7 @@ import {
   triggerLeftRingAtom,
   triggerLeftPinkyAtom,
 } from "@/state/atoms";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export default function Simple() {
   const [, setTriggerRightThumb] = useAtom(triggerRightThumbAtom);
@@ -61,13 +61,11 @@ export default function Simple() {
   ]);
   // return <RiveDemo />;
   return (
-    <>
-      <RiveHero />
-      <div className="absolute top-0 flex flex-col items-center justify-start w-full h-full pl-1.5 pt-16 xl:pt-7">
-        <div className="bg-white w-[825px] h-[575px] xl:h-[630px] xl:w-[905px]"></div>
-      </div>
-    </>
+    <div className="fixed w-screen h-screen bg-transparent z-20 flex flex-col items-center pt-20 pb-4 pl-12 pr-10">
+      <div className="h-2/3 w-2/3 bg-white text-black z-0 bg-zinc-500 rounded-3xl"></div>
+    </div>
   );
 }
 
 // top-1 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center
+// laptop-sm:w-[600px] laptop-sm:h-[386px] laptop-md:w-[825px] laptop-md:h-[575px] laptop-lg:h-[630px] laptop-lg:w-[905px] desktop-sm:h-[660px] desktop-sm:w-[1245px] desktop-md:h-[660px] desktop-md:w-[1245px] desktop-lg:h-[660px] desktop-lg:w-[1245px]

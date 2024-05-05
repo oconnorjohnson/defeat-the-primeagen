@@ -5,45 +5,88 @@ type PhaserType = typeof import("phaser");
 
 class MainScene extends Phaser.Scene {
   player!: Phaser.Physics.Arcade.Sprite;
+  cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  enemies!: Phaser.Physics.Arcade.Group;
+  friendlies!: Phaser.Physics.Arcade.Group;
 
-  constructor(phaser: PhaserType) {
-    super({ key: "MainScene" });
-    this.phaser = phaser; // store phaser ref
-  }
-
-  phaser: PhaserType; // add phaser property
   preload() {
-    this.load.image("ship", "assets/ship.png");
+    this.load.image("player", "assets/player.png");
+    this.load.image("enemy", "assets/enemy.png");
+    this.load.image("friendly", "assets/friendly.png");
   }
 
   create() {
-    this.player = this.physics.add.sprite(400, 300, "ship");
+    this.cameras.main.setBackgroundColor("#000000");
+
+    // Create player
+    this.player = this.physics.add.sprite(400, 550, "player");
     this.player.setCollideWorldBounds(true);
+
+    // Create groups for enemies and friendlies
+    this.enemies = this.physics.add.group({
+      key: "enemy",
+      repeat: 5,
+      setXY: { x: 12, y: 10, stepX: 70 },
+    });
+
+    this.friendlies = this.physics.add.group({
+      key: "friendly",
+      repeat: 5,
+      setXY: { x: 12, y: 10, stepX: 70 },
+    });
+
+    // Colliders and overlaps
+    this.physics.add.overlap(
+      this.player,
+      this.friendlies,
+      (player, friendly) => {
+        if (
+          player instanceof Phaser.Physics.Arcade.Sprite &&
+          friendly instanceof Phaser.Physics.Arcade.Sprite
+        ) {
+          this.collectFriendly(player, friendly);
+        }
+      },
+      undefined,
+      this
+    );
+    this.physics.add.collider(
+      this.player,
+      this.enemies,
+      (player, enemy) => {
+        if (
+          player instanceof Phaser.Physics.Arcade.Sprite &&
+          enemy instanceof Phaser.Physics.Arcade.Sprite
+        ) {
+          this.hitEnemy(player, enemy);
+        }
+      },
+      undefined,
+      this
+    );
   }
 
-  update() {
-    // add play movement logic here
+  collectFriendly(
+    player: Phaser.Physics.Arcade.Sprite,
+    friendly: Phaser.Physics.Arcade.Sprite
+  ) {
+    friendly.disableBody(true, true);
+  }
+
+  hitEnemy(
+    player: Phaser.Physics.Arcade.Sprite,
+    enemy: Phaser.Physics.Arcade.Sprite
+  ) {
+    this.physics.pause();
+    player.setTint(0xff0000);
   }
 }
 
 const GameComponent = () => {
   const gameRef = useRef<HTMLDivElement>(null);
-  const [phaser, setPhaser] = useState<PhaserType | null>(null);
-  const [dimensions, setDimensions] = useState({ width: 825, height: 575 });
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth >= 1280) {
-        // Tailwind's 'xl' breakpoint
-        setDimensions({ width: 905, height: 630 });
-      } else {
-        setDimensions({ width: 825, height: 575 });
-      }
-    }
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [Phaser, setPhaser] = useState<PhaserType | null>(null);
 
-    handleResize(); // Set initial size
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
   useEffect(() => {
     import("phaser").then((module) => {
       setPhaser(module);
@@ -51,9 +94,9 @@ const GameComponent = () => {
   }, []);
 
   useEffect(() => {
-    if (phaser && gameRef.current) {
+    if (Phaser && gameRef.current) {
       const config: Phaser.Types.Core.GameConfig = {
-        type: phaser.AUTO,
+        type: Phaser.AUTO,
         width: dimensions.width,
         height: dimensions.height,
         physics: {
@@ -63,15 +106,15 @@ const GameComponent = () => {
             debug: false,
           },
         },
-        scene: [new MainScene(phaser)], // Pass Phaser to the scene
+        scene: [new Phaser.Scene()],
       };
 
-      const game = new phaser.Game(config);
+      const game = new Phaser.Game(config);
       return () => {
         game.destroy(true);
       };
     }
-  }, [phaser]);
+  }, [Phaser, dimensions]);
 
   return <div ref={gameRef} />;
 };
