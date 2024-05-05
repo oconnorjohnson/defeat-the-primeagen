@@ -14,43 +14,55 @@ const GameComponent = dynamic(
         friendlies!: Phaser.Physics.Arcade.Group;
 
         preload() {
-          this.load.image("player", "assets/player.png");
-          this.load.image("enemy", "assets/enemy.png");
-          this.load.image("friendly", "assets/friendly.png");
+          this.load.image("player", "pu/player.png");
+          this.load.image("enemy", "pu/bad.png");
+          this.load.image("friendly", "pu/good.png");
+
+          this.load.on("filecomplete", (key: string) => {
+            console.log(`Asset loaded: ${key}`);
+          });
+
+          this.load.on("loaderror", (file: Phaser.Loader.File) => {
+            console.error(`Error loading asset: ${file.key}`);
+          });
         }
 
         create() {
           this.cameras.main.setBackgroundColor("#ffffff");
 
-          // Set the player's initial position to the bottom center of the viewport
-          const playerStartX = this.scale.width / 2;
-          const playerStartY = this.scale.height - 50; // Adjust 50 or as needed to position player at the bottom
-          this.player = this.physics.add.sprite(
-            playerStartX,
-            playerStartY,
-            "player"
-          );
-          this.player.setCollideWorldBounds(true);
+          const setupGame = () => {
+            const playerStartX = this.scale.width / 2;
+            const playerStartY = this.scale.height - 50;
+            this.player = this.physics.add.sprite(
+              playerStartX,
+              playerStartY,
+              "player"
+            );
+            this.player.setCollideWorldBounds(true);
 
-          // Allow player to move left and right only
-          this.cursors = this.input.keyboard!.createCursorKeys();
-          this.player.setImmovable(true); // Optional: Makes the player immovable when colliding with other objects
+            this.cursors = this.input.keyboard!.createCursorKeys();
+            this.player.setImmovable(true);
 
-          // Create groups for enemies and friendlies
-          this.enemies = this.physics.add.group({
-            key: "enemy",
-            repeat: 5,
-            setXY: { x: 12, y: 10, stepX: 70 },
-          });
+            this.enemies = this.physics.add.group({
+              key: "enemy",
+              repeat: 0,
+              setXY: { x: 50, y: 50, stepX: 70 },
+            });
 
-          this.friendlies = this.physics.add.group({
-            key: "friendly",
-            repeat: 5,
-            setXY: { x: 12, y: 10, stepX: 70 },
-          });
+            this.friendlies = this.physics.add.group({
+              key: "friendly",
+              repeat: 5,
+              setXY: { x: 100, y: 100, stepX: 70 },
+            });
 
-          // Colliders and overlaps
-          this.setupColliders();
+            this.setupColliders();
+          };
+
+          // Start game setup after all assets are loaded or if there's an error
+          this.load.on("complete", setupGame);
+          this.load.on("loaderror", setupGame);
+
+          this.load.start();
         }
 
         update() {
