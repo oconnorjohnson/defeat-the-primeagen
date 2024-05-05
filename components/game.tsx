@@ -81,20 +81,29 @@ const GameComponent = dynamic(
         }
 
         collectFriendly(
-          player: Phaser.GameObjects.GameObject,
-          friendly: Phaser.GameObjects.GameObject
+          player:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile,
+          friendly:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile
         ) {
           if (
             player instanceof Phaser.Physics.Arcade.Sprite &&
             friendly instanceof Phaser.Physics.Arcade.Sprite
           ) {
+            // Now you can safely use body specific methods
             friendly.disableBody(true, true);
           }
         }
 
         hitEnemy(
-          player: Phaser.GameObjects.GameObject,
-          enemy: Phaser.GameObjects.GameObject
+          player:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile,
+          enemy:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile
         ) {
           if (
             player instanceof Phaser.Physics.Arcade.Sprite &&
@@ -121,11 +130,11 @@ const GameComponent = dynamic(
             type: Phaser.AUTO,
             width: 800, // Default width, will be updated
             height: 600, // Default height, will be updated
-            parent: gameRef.current,
+            parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
               arcade: {
-                gravity: { y: 200 },
+                gravity: { y: 200, x: 0 },
               },
             },
             scene: [MainScene],
