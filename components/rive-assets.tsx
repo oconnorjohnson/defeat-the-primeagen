@@ -46,7 +46,7 @@ export function RiveServers() {
 
   return (
     <div
-      className="rive-canvas-container w-full h-full z-[-50] relative"
+      className="rive-canvas-container w-full h-full z-0 relative"
       style={{ width: "100vw", height: "100vh", overflow: "hidden" }}
       ref={setContainerRef}
     >

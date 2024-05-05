@@ -11,7 +11,7 @@ import {
   triggerLeftRingAtom,
   triggerLeftPinkyAtom,
 } from "@/state/atoms";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import Game from "@/components/game";
 
 export default function Simple() {
   const [, setTriggerRightThumb] = useAtom(triggerRightThumbAtom);
@@ -26,21 +26,21 @@ export default function Simple() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "f") {
-        setTriggerLeftThumb(true); // Trigger Left thumb on left arrow key press
+        setTriggerLeftThumb(true);
       } else if (event.key === "j") {
-        setTriggerRightThumb(true); // Trigger Right thumb on right arrow key press
+        setTriggerRightThumb(true);
       } else if (event.key === "k") {
-        setTriggerRightIndex(true); // Trigger Right index on up arrow key press
+        setTriggerRightIndex(true);
       } else if (event.key === "l") {
-        setTriggerRightRing(true); // Trigger Right ring on down arrow key press
+        setTriggerRightRing(true);
       } else if (event.key === ";") {
-        setTriggerRightPinky(true); // Trigger Right pinky on space key press
+        setTriggerRightPinky(true);
       } else if (event.key === "d") {
-        setTriggerLeftIndex(true); // Trigger Left index on left arrow key press
+        setTriggerLeftIndex(true);
       } else if (event.key === "s") {
-        setTriggerLeftRing(true); // Trigger Left ring on right arrow key press
+        setTriggerLeftRing(true);
       } else if (event.key === "a") {
-        setTriggerLeftPinky(true); // Trigger Left pinky on up arrow key press
+        setTriggerLeftPinky(true);
       }
     };
 
@@ -62,7 +62,9 @@ export default function Simple() {
   // return <RiveDemo />;
   return (
     <div className="fixed w-screen h-screen bg-transparent z-20 flex flex-col items-center pt-20 pb-4 pl-12 pr-10">
-      <div className="h-2/3 w-2/3 bg-white text-black z-0 bg-zinc-500 rounded-3xl"></div>
+      <div className="h-2/3 w-2/3 z-50 rounded-3xl">
+        <Game />
+      </div>
     </div>
   );
 }
