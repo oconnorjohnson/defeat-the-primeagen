@@ -16,9 +16,9 @@ const GameComponent = dynamic(
         enemies!: Phaser.Physics.Arcade.Group;
         friendlies!: Phaser.Physics.Arcade.Group;
         preload() {
-          this.load.image("player", "pu/player.png");
-          this.load.image("enemy", "pu/bad.png");
-          this.load.image("friendly", "pu/good.png");
+          this.load.image("player", "/player.png");
+          this.load.image("enemy", "/bad.png");
+          this.load.image("friendly", "/good.png");
           this.load.on("filecomplete", (key: string) => {
             console.log(`Asset loaded: ${key}`);
           });
@@ -45,13 +45,19 @@ const GameComponent = dynamic(
           });
           this.friendlies = this.physics.add.group({
             key: "friendly",
-            repeat: 5,
+            repeat: 0,
             setXY: { x: 100, y: 100, stepX: 70 },
           });
           this.setupColliders();
           this.time.addEvent({
             delay: 1000,
             callback: this.spawnEnemy,
+            callbackScope: this,
+            loop: true,
+          });
+          this.time.addEvent({
+            delay: 1500, // Time in milliseconds between each spawn
+            callback: this.spawnFriendly,
             callbackScope: this,
             loop: true,
           });
@@ -62,13 +68,13 @@ const GameComponent = dynamic(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
             )
           ) {
-            this.player.setVelocityX(-160);
+            this.player.setVelocityX(-500);
           } else if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L)
             )
           ) {
-            this.player.setVelocityX(160);
+            this.player.setVelocityX(500);
           } else {
             this.player.setVelocityX(0);
           }
@@ -93,6 +99,16 @@ const GameComponent = dynamic(
           const xPosition = Phaser.Math.Between(0, this.scale.width);
           const newEnemy = this.enemies.create(xPosition, 0, "enemy");
           newEnemy.setVelocity(0, 200);
+        }
+        spawnFriendly() {
+          const xPosition = Phaser.Math.Between(0, this.scale.width); // Random X position across the width
+          const yPosition = Phaser.Math.Between(0, this.scale.height); // Random Y position across the height
+          const newFriendly = this.friendlies.create(
+            xPosition,
+            yPosition,
+            "friendly"
+          );
+          newFriendly.setVelocity(0, 200); // Optional: Set velocity if needed
         }
         collectFriendly(
           player:
