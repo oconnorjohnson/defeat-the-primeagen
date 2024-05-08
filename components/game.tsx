@@ -18,6 +18,8 @@ const GameComponent = dynamic(
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
         enemies!: Phaser.Physics.Arcade.Group;
         friendlies!: Phaser.Physics.Arcade.Group;
+        enemySpawnEvent!: Phaser.Time.TimerEvent;
+        friendlySpawnEvent!: Phaser.Time.TimerEvent;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
@@ -62,14 +64,14 @@ const GameComponent = dynamic(
             setXY: { x: 100, y: 100, stepX: 70 },
           });
           this.setupColliders();
-          this.time.addEvent({
+          this.enemySpawnEvent = this.time.addEvent({
             delay: 1000,
             callback: this.spawnEnemy,
             callbackScope: this,
             loop: true,
           });
-          this.time.addEvent({
-            delay: 1500, // Time in milliseconds between each spawn
+          this.friendlySpawnEvent = this.time.addEvent({
+            delay: 1500,
             callback: this.spawnFriendly,
             callbackScope: this,
             loop: true,
@@ -115,7 +117,7 @@ const GameComponent = dynamic(
         }
         spawnEnemy() {
           const xPosition = Phaser.Math.Between(0, this.scale.width);
-          const newEnemy = this.enemies.create(xPosition, -50, "enemy"); // Spawn above the screen
+          const newEnemy = this.enemies.create(xPosition, -50, "enemy");
           newEnemy.setVelocity(0, 200);
         }
 
@@ -125,7 +127,7 @@ const GameComponent = dynamic(
             xPosition,
             -50,
             "friendly"
-          ); // Spawn above the screen
+          );
           newFriendly.setVelocity(0, 200);
         }
         collectFriendly(
@@ -159,6 +161,8 @@ const GameComponent = dynamic(
           ) {
             this.physics.pause();
             player.setTint(0xff0000);
+            this.enemySpawnEvent.remove();
+            this.friendlySpawnEvent.remove();
           }
         }
       }
