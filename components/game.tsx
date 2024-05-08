@@ -8,8 +8,11 @@ const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
+        score: number;
+        scoreText!: Phaser.GameObjects.Text;
         constructor() {
           super({ key: "MainScene" });
+          this.score = 0;
         }
         player!: Phaser.Physics.Arcade.Sprite;
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -60,6 +63,10 @@ const GameComponent = dynamic(
             callback: this.spawnFriendly,
             callbackScope: this,
             loop: true,
+          });
+          this.scoreText = this.add.text(16, 16, "Score: 0", {
+            fontSize: "32px",
+            color: "000000",
           });
         }
         update() {
@@ -123,6 +130,8 @@ const GameComponent = dynamic(
             friendly instanceof Phaser.Physics.Arcade.Sprite
           ) {
             friendly.disableBody(true, true);
+            this.score += 1;
+            this.scoreText.setText(`Score: ${this.score}`);
           }
         }
         hitEnemy(
