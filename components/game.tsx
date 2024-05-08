@@ -20,6 +20,9 @@ const GameComponent = dynamic(
         friendlies!: Phaser.Physics.Arcade.Group;
         enemySpawnEvent!: Phaser.Time.TimerEvent;
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
+        totalFriendliesPassed: number = 0;
+        friendliesCollected: number = 0;
+        acceptanceRateText!: Phaser.GameObjects.Text;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
@@ -80,6 +83,19 @@ const GameComponent = dynamic(
             fontSize: "32px",
             color: "000000",
           });
+          this.acceptanceRateText = this.add.text(16, 50, "Hit Rate: 0%", {
+            fontSize: "32px",
+            color: "#000000",
+          });
+        }
+        updateAcceptanceRate() {
+          if (this.totalFriendliesPassed > 0) {
+            const acceptanceRate =
+              (this.friendliesCollected / this.totalFriendliesPassed) * 100;
+            this.acceptanceRateText.setText(
+              `Hit Rate: ${acceptanceRate.toFixed(2)}%`
+            );
+          }
         }
         update() {
           if (
@@ -101,11 +117,12 @@ const GameComponent = dynamic(
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
-              this.score -= 1; // Decrement the score
-              this.scoreText.setText(`Score: ${this.score}`); // Update the score display
-              return false; // Continue iterating
+              this.score -= 1;
+              this.scoreText.setText(`Score: ${this.score}`);
+              this.totalFriendliesPassed++;
+              this.updateAcceptanceRate();
             }
-            return true; // Continue iterating
+            return true;
           });
         }
         setupColliders() {
@@ -155,6 +172,9 @@ const GameComponent = dynamic(
             friendly.disableBody(true, true);
             this.score += 1;
             this.scoreText.setText(`Score: ${this.score}`);
+            this.friendliesCollected++;
+            this.totalFriendliesPassed++;
+            this.updateAcceptanceRate();
           }
         }
         hitEnemy(
