@@ -104,18 +104,18 @@ const GameComponent = dynamic(
         }
         spawnEnemy() {
           const xPosition = Phaser.Math.Between(0, this.scale.width);
-          const newEnemy = this.enemies.create(xPosition, 0, "enemy");
+          const newEnemy = this.enemies.create(xPosition, -50, "enemy"); // Spawn above the screen
           newEnemy.setVelocity(0, 200);
         }
+
         spawnFriendly() {
-          const xPosition = Phaser.Math.Between(0, this.scale.width); // Random X position across the width
-          const yPosition = Phaser.Math.Between(0, this.scale.height); // Random Y position across the height
+          const xPosition = Phaser.Math.Between(0, this.scale.width);
           const newFriendly = this.friendlies.create(
             xPosition,
-            yPosition,
+            -50,
             "friendly"
-          );
-          newFriendly.setVelocity(0, 200); // Optional: Set velocity if needed
+          ); // Spawn above the screen
+          newFriendly.setVelocity(0, 200);
         }
         collectFriendly(
           player:
