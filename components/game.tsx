@@ -98,6 +98,15 @@ const GameComponent = dynamic(
             this.player.setVelocityX(0);
           }
           this.physics.world.wrap(this.player, 0);
+          this.friendlies.children.each((friendly: any) => {
+            if (friendly.y > this.scale.height && friendly.active) {
+              friendly.setActive(false).setVisible(false);
+              this.score -= 1; // Decrement the score
+              this.scoreText.setText(`Score: ${this.score}`); // Update the score display
+              return false; // Continue iterating
+            }
+            return true; // Continue iterating
+          });
         }
         setupColliders() {
           this.physics.add.overlap(
@@ -130,6 +139,7 @@ const GameComponent = dynamic(
           );
           newFriendly.setVelocity(0, 200);
         }
+
         collectFriendly(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
