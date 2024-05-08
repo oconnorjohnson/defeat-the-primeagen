@@ -39,6 +39,16 @@ const GameComponent = dynamic(
             "player"
           );
           this.player.setCollideWorldBounds(true);
+          this.physics.world.setBounds(
+            0,
+            0,
+            this.scale.width,
+            this.scale.height,
+            false,
+            false,
+            true,
+            true
+          );
           this.cursors = this.input.keyboard!.createCursorKeys();
           this.player.setImmovable(true);
           this.enemies = this.physics.add.group({
@@ -85,6 +95,7 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
+          this.physics.world.wrap(this.player, 0);
         }
         setupColliders() {
           this.physics.add.overlap(
