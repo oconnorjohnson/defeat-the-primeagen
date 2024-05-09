@@ -34,7 +34,7 @@ const GameComponent = dynamic(
           this.load.image("laser", "/laser.png");
         }
         create() {
-          this.cameras.main.setBackgroundColor("#ffffff");
+          this.cameras.main.setBackgroundColor("#b0c4de");
           const playerStartX = this.scale.width / 2;
           const playerStartY = this.scale.height - 50;
           this.player = this.physics.add.sprite(
@@ -256,6 +256,7 @@ const GameComponent = dynamic(
             laser.setPosition(this.player.x, this.player.y - 20);
             laser.setActive(true);
             laser.setVisible(true);
+            laser.body.allowGravity = false;
             laser.setVelocityY(-800);
           } else {
             laser = this.lasers.create(
@@ -264,7 +265,8 @@ const GameComponent = dynamic(
               "laser"
             );
             if (laser) {
-              laser.setVelocityY(-400);
+              laser.body.allowGravity = false;
+              laser.setVelocityY(-800);
             }
           }
         }
@@ -310,7 +312,7 @@ const GameComponent = dynamic(
             enemy.setActive(true).setVisible(true);
             enemy.body.enable = true;
           }
-          enemy.setVelocity(0, 200);
+          enemy.setVelocity(0, 50);
         }
 
         spawnFriendly() {
