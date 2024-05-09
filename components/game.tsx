@@ -10,6 +10,8 @@ const GameComponent = dynamic(
       class MainScene extends Phaser.Scene {
         score: number;
         scoreText!: Phaser.GameObjects.Text;
+        enemiesKilledWithLaser: number = 0;
+        enemiesKilledText!: Phaser.GameObjects.Text;
         constructor() {
           super({ key: "MainScene" });
           this.score = 0;
@@ -108,6 +110,15 @@ const GameComponent = dynamic(
               ) {
                 laser.setActive(false).setVisible(false);
                 enemy.setActive(false).setVisible(false);
+                laser.setActive(false).setVisible(false);
+                enemy.setActive(false).setVisible(false);
+                enemy.body!.enable = false;
+                this.score += 1;
+                this.scoreText.setText(`Score: ${this.score}`);
+                this.enemiesKilledWithLaser += 1;
+                this.enemiesKilledText.setText(
+                  `Enemies killed: ${this.enemiesKilledWithLaser}`
+                );
               }
             }
           );
@@ -136,11 +147,15 @@ const GameComponent = dynamic(
             fontSize: "32px",
             color: "000000",
           });
+          this.enemiesKilledText = this.add.text(16, 112, "Enemies killed: 0", {
+            fontSize: "32px",
+            color: "#ff0000",
+          });
           this.acceptanceRateText = this.add.text(16, 50, "Hit Rate: 0%", {
             fontSize: "32px",
             color: "#000000",
           });
-          this.enemiesHitText = this.add.text(16, 80, "Hits: 0/3", {
+          this.enemiesHitText = this.add.text(16, 80, "Enemy Collisions: 0/3", {
             fontSize: "32px",
             color: "#ff0000",
           });
