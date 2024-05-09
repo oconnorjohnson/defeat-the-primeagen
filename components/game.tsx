@@ -25,16 +25,12 @@ const GameComponent = dynamic(
         enemiesHit: number = 0;
         acceptanceRateText!: Phaser.GameObjects.Text;
         enemiesHitText!: Phaser.GameObjects.Text;
+        lasers!: Phaser.Physics.Arcade.Group;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
           this.load.image("friendly", "/good.png");
-          this.load.on("filecomplete", (key: string) => {
-            console.log(`Asset loaded: ${key}`);
-          });
-          this.load.on("loaderror", (file: Phaser.Loader.File) => {
-            console.error(`Error loading asset: ${file.key}`);
-          });
+          this.load.image("laser", "/laser.png");
         }
         create() {
           this.cameras.main.setBackgroundColor("#ffffff");
@@ -56,13 +52,55 @@ const GameComponent = dynamic(
             true,
             true
           );
-          this.cursors = this.input.keyboard!.createCursorKeys();
-          this.player.setImmovable(true);
           this.enemies = this.physics.add.group({
             key: "enemy",
             repeat: 0,
             setXY: { x: 50, y: 50, stepX: 70 },
           });
+          this.lasers = this.physics.add.group({
+            classType: Phaser.Physics.Arcade.Image,
+            maxSize: -1, // No limit to the number of lasers
+            runChildUpdate: true,
+          });
+
+          // Ensure lasers do not fall down
+          this.lasers.children.iterate((laser) => {
+            if (
+              laser instanceof Phaser.Physics.Arcade.Image &&
+              laser.body instanceof Phaser.Physics.Arcade.Body
+            ) {
+              // Directly set the allowGravity property
+              laser.body.allowGravity = false;
+            }
+            return true; // Continue iterating over all children
+          });
+
+          // Add collider between player and enemies
+          this.physics.add.collider(
+            this.player,
+            this.enemies,
+            this.hitEnemy, // Ensure this is the correct callback function
+            undefined,
+            this // Context is important for 'this' keyword inside the callback
+          );
+
+          // Add collider between lasers and enemies
+          this.physics.add.collider(
+            this.lasers,
+            this.enemies,
+            (laser, enemy) => {
+              if (
+                laser instanceof Phaser.Physics.Arcade.Image &&
+                enemy instanceof Phaser.Physics.Arcade.Sprite
+              ) {
+                laser.setActive(false).setVisible(false); // Deactivate and hide the laser
+                enemy.setActive(false).setVisible(false); // Optionally deactivate and hide the enemy
+              }
+            }
+          );
+          this.cursors = this.input.keyboard!.createCursorKeys();
+          this.player.setImmovable(true);
+
           this.friendlies = this.physics.add.group({
             key: "friendly",
             repeat: 0,
@@ -104,6 +142,7 @@ const GameComponent = dynamic(
           }
         }
         update() {
+          // Handle player movement with 'H' and 'L' keys
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
@@ -119,7 +158,19 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
-          this.physics.world.wrap(this.player, 0);
+
+          // Check for the Backspace key to shoot a laser
+          if (
+            this.input.keyboard!.checkDown(
+              this.input.keyboard!.addKey(
+                Phaser.Input.Keyboard.KeyCodes.BACKSPACE
+              )
+            )
+          ) {
+            this.shootLaser();
+          }
+
+          // Handle friendly objects passing the screen bottom
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -130,6 +181,20 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          this.lasers.children.each((laser) => {
+            if (laser instanceof Phaser.Physics.Arcade.Image) {
+              // Ensure the object is the correct type
+              if (laser.y < 0) {
+                laser.setActive(false).setVisible(false); // Deactivate and hide off-screen lasers
+              }
+            }
+            return true; // Continue iterating over all children
+          });
+          if (this.player.x < 0) {
+            this.player.setX(this.scale.width); // Move player to the right side if they go past the left edge
+          } else if (this.player.x > this.scale.width) {
+            this.player.setX(0); // Move player to the left side if they go past the right edge
+          }
         }
         setupColliders() {
           this.physics.add.overlap(
@@ -142,15 +207,97 @@ const GameComponent = dynamic(
           this.physics.add.collider(
             this.player,
             this.enemies,
-            this.hitEnemy,
-            undefined,
-            this
+            (object1, object2) => {
+              const player =
+                object1 instanceof Phaser.Physics.Arcade.Sprite
+                  ? object1
+                  : object2;
+              const enemy =
+                object1 instanceof Phaser.Physics.Arcade.Sprite
+                  ? object2
+                  : object1;
+
+              if (
+                enemy instanceof Phaser.Physics.Arcade.Sprite &&
+                enemy.active
+              ) {
+                if (enemy.body) {
+                  enemy.setActive(false).setVisible(false);
+                  enemy.body.enable = false;
+                }
+              }
+            }
           );
+        }
+        hitPlayer(
+          player: Phaser.Physics.Arcade.Sprite,
+          enemy: Phaser.Physics.Arcade.Sprite
+        ) {
+          // Reduce player life or score
+          this.score -= 1;
+          this.scoreText.setText(`Score: ${this.score}`);
+
+          // Optionally, you might want to deactivate the enemy upon hitting the player
+          if (enemy.body && enemy.active) {
+            enemy.setActive(false).setVisible(false);
+            enemy.body.enable = false;
+          }
+        }
+        shootLaser() {
+          // Get the first inactive laser from the group
+          let laser = this.lasers.getFirstDead(false);
+
+          if (laser) {
+            // Reset the position and reactivate the laser
+            laser.setPosition(this.player.x, this.player.y - 20);
+            laser.setActive(true);
+            laser.setVisible(true);
+            laser.setVelocityY(-800);
+          } else {
+            // If no inactive laser is available, create a new one
+            laser = this.lasers.create(
+              this.player.x,
+              this.player.y - 20,
+              "laser"
+            );
+            if (laser) {
+              laser.setVelocityY(-400);
+            }
+          }
+        }
+        laserHitEnemy(
+          object1:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile,
+          object2:
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile
+        ) {
+          const laser =
+            object1 instanceof Phaser.Physics.Arcade.Image
+              ? object1
+              : object2 instanceof Phaser.Physics.Arcade.Image
+              ? object2
+              : null;
+          const enemy =
+            object1 instanceof Phaser.Physics.Arcade.Sprite
+              ? object1
+              : object2 instanceof Phaser.Physics.Arcade.Sprite
+              ? object2
+              : null;
+
+          if (laser && enemy) {
+            laser.setActive(false).setVisible(false);
+            enemy.setActive(false).setVisible(false);
+            enemy.body!.enable = false;
+          }
         }
         spawnEnemy() {
           const xPosition = Phaser.Math.Between(0, this.scale.width);
           const newEnemy = this.enemies.create(xPosition, -50, "enemy");
           newEnemy.setVelocity(0, 200);
+          newEnemy.setActive(true).setVisible(true);
+          newEnemy.body.enable = true;
         }
 
         spawnFriendly() {
@@ -188,6 +335,7 @@ const GameComponent = dynamic(
             (enemy: Phaser.GameObjects.GameObject) => {
               if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
                 enemy.setData("isHit", false);
+                enemy.setData("inDebounce", false);
                 enemy.setActive(true).setVisible(true);
               }
               return true; // Ensure to return a boolean
@@ -209,6 +357,7 @@ const GameComponent = dynamic(
             // Check if the enemy is already 'hit'
             if (!enemy.getData("isHit")) {
               enemy.setData("isHit", true); // Mark this enemy as 'hit'
+              enemy.setData("inDebounce", true); // Set a flag to prevent multiple hits
               this.enemiesHit += 1;
               this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
 
@@ -231,7 +380,7 @@ const GameComponent = dynamic(
                     "Game Over",
                     {
                       fontSize: "40px",
-                      color: "#ffffff",
+                      color: "#000000",
                     }
                   )
                   .setOrigin(0.5);
