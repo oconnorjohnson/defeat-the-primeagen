@@ -13,6 +13,7 @@ const GameComponent = dynamic(
         constructor() {
           super({ key: "MainScene" });
           this.score = 0;
+          this.hitEnemy = this.hitEnemy;
         }
         player!: Phaser.Physics.Arcade.Sprite;
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -62,7 +63,16 @@ const GameComponent = dynamic(
             maxSize: -1,
             runChildUpdate: true,
           });
-
+          this.enemies.children.iterate((enemy) => {
+            if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
+              // Assuming you've already set the size as above
+              enemy.body!.setOffset(
+                (enemy.width - (enemy.width - 10)) / 2,
+                (enemy.height - (enemy.height - 10)) / 2
+              );
+            }
+            return true;
+          });
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
@@ -76,9 +86,16 @@ const GameComponent = dynamic(
           this.physics.add.collider(
             this.player,
             this.enemies,
-            this.hitEnemy,
-            undefined,
-            this
+            (player, enemy) => {
+              if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
+                enemy.setActive(false).setVisible(false);
+                enemy.body!.stop();
+                enemy.body!.enable = false;
+                this.enemiesHit += 1;
+                this.enemies.remove(enemy, true, true);
+                this.hitEnemy(player, enemy);
+              }
+            }
           );
 
           this.physics.add.collider(
@@ -196,30 +213,30 @@ const GameComponent = dynamic(
             undefined,
             this
           );
-          this.physics.add.collider(
-            this.player,
-            this.enemies,
-            (object1, object2) => {
-              const player =
-                object1 instanceof Phaser.Physics.Arcade.Sprite
-                  ? object1
-                  : object2;
-              const enemy =
-                object1 instanceof Phaser.Physics.Arcade.Sprite
-                  ? object2
-                  : object1;
+          // this.physics.add.collider(
+          //   this.player,
+          //   this.enemies,
+          //   (object1, object2) => {
+          //     const player =
+          //       object1 instanceof Phaser.Physics.Arcade.Sprite
+          //         ? object1
+          //         : object2;
+          //     const enemy =
+          //       object1 instanceof Phaser.Physics.Arcade.Sprite
+          //         ? object2
+          //         : object1;
 
-              if (
-                enemy instanceof Phaser.Physics.Arcade.Sprite &&
-                enemy.active
-              ) {
-                if (enemy.body) {
-                  enemy.setActive(false).setVisible(false);
-                  enemy.body.enable = false;
-                }
-              }
-            }
-          );
+          //     if (
+          //       enemy instanceof Phaser.Physics.Arcade.Sprite &&
+          //       enemy.active
+          //     ) {
+          //       if (enemy.body) {
+          //         enemy.setActive(false).setVisible(false);
+          //         enemy.body.enable = false;
+          //       }
+          //     }
+          //   }
+          // );
         }
         hitPlayer(
           player: Phaser.Physics.Arcade.Sprite,
@@ -279,11 +296,21 @@ const GameComponent = dynamic(
           }
         }
         spawnEnemy() {
-          const xPosition = Phaser.Math.Between(0, this.scale.width);
-          const newEnemy = this.enemies.create(xPosition, -50, "enemy");
-          newEnemy.setVelocity(0, 200);
-          newEnemy.setActive(true).setVisible(true);
-          newEnemy.body.enable = true;
+          let enemy = this.enemies.getFirstDead(false);
+          if (!enemy) {
+            // Create a new enemy if no inactive ones are available
+            enemy = this.enemies.create(
+              Phaser.Math.Between(0, this.scale.width),
+              -50,
+              "enemy"
+            );
+          } else {
+            // Properly reinitialize the enemy
+            enemy.setPosition(Phaser.Math.Between(0, this.scale.width), -50);
+            enemy.setActive(true).setVisible(true);
+            enemy.body.enable = true;
+          }
+          enemy.setVelocity(0, 200);
         }
 
         spawnFriendly() {
@@ -323,6 +350,8 @@ const GameComponent = dynamic(
                 enemy.setData("isHit", false);
                 enemy.setData("inDebounce", false);
                 enemy.setActive(true).setVisible(true);
+                // adjust hit box on enemies to subtract 10 pixels from the width and height
+                enemy.body!.setSize(enemy.width - 10, enemy.height - 10, true);
               }
               return true;
             }
@@ -343,7 +372,8 @@ const GameComponent = dynamic(
             if (!enemy.getData("isHit")) {
               enemy.setData("isHit", true);
               enemy.setData("inDebounce", true);
-              this.enemiesHit += 1;
+
+              console.log(`Enemy Hit: ${this.enemiesHit}`); // Debugging output
               this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
 
               enemy.setActive(false).setVisible(false);
@@ -353,7 +383,9 @@ const GameComponent = dynamic(
                 enemy.setActive(true).setVisible(true);
               });
 
+              // Check if the game should end after updating enemiesHit
               if (this.enemiesHit >= 3) {
+                console.log("Game Over should trigger now."); // Debugging output
                 this.physics.pause();
                 player.setTint(0xff0000);
                 const gameOverText = this.add
