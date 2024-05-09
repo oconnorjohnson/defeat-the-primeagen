@@ -22,7 +22,9 @@ const GameComponent = dynamic(
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
         totalFriendliesPassed: number = 0;
         friendliesCollected: number = 0;
+        enemiesHit: number = 0;
         acceptanceRateText!: Phaser.GameObjects.Text;
+        enemiesHitText!: Phaser.GameObjects.Text;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
@@ -86,6 +88,10 @@ const GameComponent = dynamic(
           this.acceptanceRateText = this.add.text(16, 50, "Hit Rate: 0%", {
             fontSize: "32px",
             color: "#000000",
+          });
+          this.enemiesHitText = this.add.text(16, 80, "Hits: 0/3", {
+            fontSize: "32px",
+            color: "#ff0000",
           });
         }
         updateAcceptanceRate() {
@@ -177,6 +183,17 @@ const GameComponent = dynamic(
             this.updateAcceptanceRate();
           }
         }
+        clearEnemyStates() {
+          this.enemies.children.iterate(
+            (enemy: Phaser.GameObjects.GameObject) => {
+              if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
+                enemy.setData("isHit", false);
+                enemy.setActive(true).setVisible(true);
+              }
+              return true; // Ensure to return a boolean
+            }
+          );
+        }
         hitEnemy(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -189,10 +206,58 @@ const GameComponent = dynamic(
             player instanceof Phaser.Physics.Arcade.Sprite &&
             enemy instanceof Phaser.Physics.Arcade.Sprite
           ) {
-            this.physics.pause();
-            player.setTint(0xff0000);
-            this.enemySpawnEvent.remove();
-            this.friendlySpawnEvent.remove();
+            // Check if the enemy is already 'hit'
+            if (!enemy.getData("isHit")) {
+              enemy.setData("isHit", true); // Mark this enemy as 'hit'
+              this.enemiesHit += 1;
+              this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
+
+              // Disable this enemy for further collision
+              enemy.setActive(false).setVisible(false);
+
+              // Optionally, reset the 'isHit' data after a delay
+              this.time.delayedCall(1000, () => {
+                enemy.setData("isHit", false);
+                enemy.setActive(true).setVisible(true);
+              });
+
+              if (this.enemiesHit >= 3) {
+                this.physics.pause();
+                player.setTint(0xff0000);
+                const gameOverText = this.add
+                  .text(
+                    this.scale.width / 2,
+                    this.scale.height / 2,
+                    "Game Over",
+                    {
+                      fontSize: "40px",
+                      color: "#ffffff",
+                    }
+                  )
+                  .setOrigin(0.5);
+
+                // Create a restart button
+                const restartButton = this.add
+                  .text(
+                    this.scale.width / 2,
+                    this.scale.height / 2 + 50,
+                    "Restart Game",
+                    {
+                      fontSize: "32px",
+                      color: "#00ff00",
+                      backgroundColor: "#000000",
+                      padding: { left: 10, right: 10, top: 5, bottom: 5 },
+                    }
+                  )
+                  .setOrigin(0.5)
+                  .setInteractive()
+                  .on("pointerdown", () => {
+                    this.clearEnemyStates();
+                    this.enemiesHit = 0;
+                    this.scene.restart();
+                  });
+              }
+            }
           }
         }
       }
