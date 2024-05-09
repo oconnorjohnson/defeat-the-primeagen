@@ -59,32 +59,28 @@ const GameComponent = dynamic(
           });
           this.lasers = this.physics.add.group({
             classType: Phaser.Physics.Arcade.Image,
-            maxSize: -1, // No limit to the number of lasers
+            maxSize: -1,
             runChildUpdate: true,
           });
 
-          // Ensure lasers do not fall down
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
               laser.body instanceof Phaser.Physics.Arcade.Body
             ) {
-              // Directly set the allowGravity property
               laser.body.allowGravity = false;
             }
-            return true; // Continue iterating over all children
+            return true;
           });
 
-          // Add collider between player and enemies
           this.physics.add.collider(
             this.player,
             this.enemies,
-            this.hitEnemy, // Ensure this is the correct callback function
+            this.hitEnemy,
             undefined,
-            this // Context is important for 'this' keyword inside the callback
+            this
           );
 
-          // Add collider between lasers and enemies
           this.physics.add.collider(
             this.lasers,
             this.enemies,
@@ -93,8 +89,8 @@ const GameComponent = dynamic(
                 laser instanceof Phaser.Physics.Arcade.Image &&
                 enemy instanceof Phaser.Physics.Arcade.Sprite
               ) {
-                laser.setActive(false).setVisible(false); // Deactivate and hide the laser
-                enemy.setActive(false).setVisible(false); // Optionally deactivate and hide the enemy
+                laser.setActive(false).setVisible(false);
+                enemy.setActive(false).setVisible(false);
               }
             }
           );
@@ -142,7 +138,6 @@ const GameComponent = dynamic(
           }
         }
         update() {
-          // Handle player movement with 'H' and 'L' keys
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
@@ -159,7 +154,6 @@ const GameComponent = dynamic(
             this.player.setVelocityX(0);
           }
 
-          // Check for the Backspace key to shoot a laser
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(
@@ -170,7 +164,6 @@ const GameComponent = dynamic(
             this.shootLaser();
           }
 
-          // Handle friendly objects passing the screen bottom
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -183,17 +176,16 @@ const GameComponent = dynamic(
           });
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
-              // Ensure the object is the correct type
               if (laser.y < 0) {
-                laser.setActive(false).setVisible(false); // Deactivate and hide off-screen lasers
+                laser.setActive(false).setVisible(false);
               }
             }
-            return true; // Continue iterating over all children
+            return true;
           });
           if (this.player.x < 0) {
-            this.player.setX(this.scale.width); // Move player to the right side if they go past the left edge
+            this.player.setX(this.scale.width);
           } else if (this.player.x > this.scale.width) {
-            this.player.setX(0); // Move player to the left side if they go past the right edge
+            this.player.setX(0);
           }
         }
         setupColliders() {
@@ -233,28 +225,22 @@ const GameComponent = dynamic(
           player: Phaser.Physics.Arcade.Sprite,
           enemy: Phaser.Physics.Arcade.Sprite
         ) {
-          // Reduce player life or score
           this.score -= 1;
           this.scoreText.setText(`Score: ${this.score}`);
-
-          // Optionally, you might want to deactivate the enemy upon hitting the player
           if (enemy.body && enemy.active) {
             enemy.setActive(false).setVisible(false);
             enemy.body.enable = false;
           }
         }
         shootLaser() {
-          // Get the first inactive laser from the group
           let laser = this.lasers.getFirstDead(false);
 
           if (laser) {
-            // Reset the position and reactivate the laser
             laser.setPosition(this.player.x, this.player.y - 20);
             laser.setActive(true);
             laser.setVisible(true);
             laser.setVelocityY(-800);
           } else {
-            // If no inactive laser is available, create a new one
             laser = this.lasers.create(
               this.player.x,
               this.player.y - 20,
@@ -338,7 +324,7 @@ const GameComponent = dynamic(
                 enemy.setData("inDebounce", false);
                 enemy.setActive(true).setVisible(true);
               }
-              return true; // Ensure to return a boolean
+              return true;
             }
           );
         }
@@ -354,17 +340,14 @@ const GameComponent = dynamic(
             player instanceof Phaser.Physics.Arcade.Sprite &&
             enemy instanceof Phaser.Physics.Arcade.Sprite
           ) {
-            // Check if the enemy is already 'hit'
             if (!enemy.getData("isHit")) {
-              enemy.setData("isHit", true); // Mark this enemy as 'hit'
-              enemy.setData("inDebounce", true); // Set a flag to prevent multiple hits
+              enemy.setData("isHit", true);
+              enemy.setData("inDebounce", true);
               this.enemiesHit += 1;
               this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
 
-              // Disable this enemy for further collision
               enemy.setActive(false).setVisible(false);
 
-              // Optionally, reset the 'isHit' data after a delay
               this.time.delayedCall(1000, () => {
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
@@ -385,7 +368,6 @@ const GameComponent = dynamic(
                   )
                   .setOrigin(0.5);
 
-                // Create a restart button
                 const restartButton = this.add
                   .text(
                     this.scale.width / 2,
