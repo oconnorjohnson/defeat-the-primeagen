@@ -77,6 +77,13 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          this.availableLasers = 10;
+          this.laserResetTimer = this.time.addEvent({
+            delay: 30000,
+            callback: this.resetLasers,
+            callbackScope: this,
+            loop: true,
+          });
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
@@ -248,25 +255,41 @@ const GameComponent = dynamic(
           }
         }
         shootLaser() {
-          let laser = this.lasers.getFirstDead(false);
-
-          if (laser) {
-            laser.setPosition(this.player.x, this.player.y - 20);
-            laser.setActive(true);
-            laser.setVisible(true);
-            laser.body.allowGravity = false;
-            laser.setVelocityY(-800);
-          } else {
-            laser = this.lasers.create(
-              this.player.x,
-              this.player.y - 20,
-              "laser"
-            );
+          console.log(
+            "Attempting to shoot a laser. Available lasers:",
+            this.availableLasers
+          );
+          if (this.availableLasers > 0) {
+            let laser = this.lasers.getFirstDead(false);
+            if (!laser) {
+              laser = this.lasers.create(
+                this.player.x,
+                this.player.y - 20,
+                "laser"
+              );
+              if (laser) {
+                laser.body.allowGravity = false;
+                laser.setVelocityY(-800);
+              }
+            }
             if (laser) {
+              laser.setPosition(this.player.x, this.player.y - 20);
+              laser.setActive(true);
+              laser.setVisible(true);
               laser.body.allowGravity = false;
               laser.setVelocityY(-800);
+              this.availableLasers--; // Decrement the available lasers
+              console.log(
+                "Laser fired. Remaining lasers:",
+                this.availableLasers
+              );
             }
+          } else {
+            console.log("No lasers available to fire.");
           }
+        }
+        resetLasers() {
+          this.availableLasers = 10;
         }
         laserHitEnemy(
           object1:
