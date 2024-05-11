@@ -96,7 +96,17 @@ const GameComponent = dynamic(
             }
             return true;
           });
-
+          this.laserResetBar = this.add.graphics();
+          this.drawLaserResetBar();
+          this.laserResetTimer = this.time.addEvent({
+            delay: this.laserResetDuration,
+            callback: () => {
+              this.resetLasers();
+              this.timeUntilNextReset = this.laserResetDuration;
+            },
+            callbackScope: this,
+            loop: true,
+          });
           this.physics.add.collider(
             this.player,
             this.enemies,
@@ -181,7 +191,9 @@ const GameComponent = dynamic(
             );
           }
         }
-        update() {
+        update(time: number, delta: number) {
+          this.timeUntilNextReset -= delta;
+          this.drawLaserResetBar();
           if (
             this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
@@ -257,6 +269,13 @@ const GameComponent = dynamic(
             enemy.body.enable = false;
           }
         }
+        drawLaserResetBar() {
+          this.laserResetBar.clear();
+          this.laserResetBar.fillStyle(0x00ff00, 1);
+          const barWidth =
+            (this.timeUntilNextReset / this.laserResetDuration) * 200;
+          this.laserResetBar.fillRect(10, 10, barWidth, 20);
+        }
         shootLaser() {
           console.log(
             "Attempting to shoot a laser. Available lasers:",
@@ -293,6 +312,8 @@ const GameComponent = dynamic(
         }
         resetLasers() {
           this.availableLasers = 10;
+          this.timeUntilNextReset = this.laserResetDuration;
+          this.drawLaserResetBar();
         }
         laserHitEnemy(
           object1:
