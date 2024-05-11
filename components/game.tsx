@@ -29,6 +29,8 @@ const GameComponent = dynamic(
         acceptanceRateText!: Phaser.GameObjects.Text;
         enemiesHitText!: Phaser.GameObjects.Text;
         lasers!: Phaser.Physics.Arcade.Group;
+        availableLasers: number = 10;
+        laserResetTimer!: Phaser.Time.TimerEvent;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
