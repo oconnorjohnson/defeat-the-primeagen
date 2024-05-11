@@ -8,6 +8,7 @@ const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
+        gameIsActive: boolean = true;
         score: number;
         scoreText!: Phaser.GameObjects.Text;
         enemiesKilledWithLaser: number = 0;
@@ -138,6 +139,7 @@ const GameComponent = dynamic(
                 this.score += 1;
                 this.scoreText.setText(`Score: ${this.score}`);
                 this.enemiesKilledWithLaser += 1;
+                this.updateEnemiesKilled();
                 this.enemiesKilledText.setText(
                   `Enemies killed: ${this.enemiesKilledWithLaser}`
                 );
@@ -191,9 +193,25 @@ const GameComponent = dynamic(
             );
           }
         }
-        update(time: number, delta: number) {
-          this.timeUntilNextReset -= delta;
+        stopLaserResetTimer() {
+          if (this.laserResetTimer) {
+            this.laserResetTimer.remove();
+            this.laserResetTimer = this.time.addEvent({
+              delay: this.laserResetDuration,
+              callback: this.resetLasers,
+              callbackScope: this,
+              loop: true,
+            });
+          }
+          this.gameIsActive = false; // Stop updating the timer in the update loop
+          this.timeUntilNextReset = this.laserResetDuration; // Set the time to full
           this.drawLaserResetBar();
+        }
+        update(time: number, delta: number) {
+          if (this.gameIsActive) {
+            this.timeUntilNextReset -= delta;
+            this.drawLaserResetBar();
+          }
           if (
             this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
@@ -229,6 +247,7 @@ const GameComponent = dynamic(
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
               this.score -= 1;
+              this.updateScore();
               this.scoreText.setText(`Score: ${this.score}`);
               this.totalFriendliesPassed++;
               this.updateAcceptanceRate();
@@ -270,11 +289,47 @@ const GameComponent = dynamic(
           }
         }
         drawLaserResetBar() {
-          this.laserResetBar.clear();
-          this.laserResetBar.fillStyle(0x00ff00, 1);
-          const barWidth =
-            (this.timeUntilNextReset / this.laserResetDuration) * 200;
-          this.laserResetBar.fillRect(10, 10, barWidth, 20);
+          const laserResetBar = document.getElementById("laser-reset-bar");
+          if (laserResetBar) {
+            const barWidth =
+              (this.timeUntilNextReset / this.laserResetDuration) * 100; // Calculate percentage
+            laserResetBar.style.width = `${barWidth}%`;
+            laserResetBar.style.backgroundColor = "#00ff00"; // Green color
+          }
+        }
+        updateScore() {
+          const scoreElement = document.getElementById("score");
+          if (scoreElement) scoreElement.innerText = `Score: ${this.score}`;
+        }
+
+        updateHitRate() {
+          const hitRateElement = document.getElementById("hit-rate");
+          if (hitRateElement)
+            hitRateElement.innerText = `Hit Rate: ${(
+              (this.friendliesCollected / this.totalFriendliesPassed) *
+              100
+            ).toFixed(2)}%`;
+        }
+
+        updateEnemiesKilled() {
+          const enemiesKilledElement =
+            document.getElementById("enemies-killed");
+          if (enemiesKilledElement)
+            enemiesKilledElement.innerText = `Enemies Killed: ${this.enemiesKilledWithLaser}`;
+        }
+        setupLaserResetTimer() {
+          if (this.laserResetTimer) {
+            this.laserResetTimer.remove(); // Remove existing timer if any
+          }
+          this.laserResetTimer = this.time.addEvent({
+            delay: this.laserResetDuration,
+            callback: () => {
+              this.resetLasers();
+              this.drawLaserResetBar(); // Ensure this updates the external UI
+            },
+            callbackScope: this,
+            loop: true,
+          });
         }
         shootLaser() {
           console.log(
@@ -313,6 +368,7 @@ const GameComponent = dynamic(
         resetLasers() {
           this.availableLasers = 10;
           this.timeUntilNextReset = this.laserResetDuration;
+          this.setupLaserResetTimer();
           this.drawLaserResetBar();
         }
         laserHitEnemy(
@@ -387,6 +443,7 @@ const GameComponent = dynamic(
             this.scoreText.setText(`Score: ${this.score}`);
             this.friendliesCollected++;
             this.totalFriendliesPassed++;
+            this.updateHitRate();
             this.updateAcceptanceRate();
           }
         }
@@ -434,6 +491,7 @@ const GameComponent = dynamic(
               if (this.enemiesHit >= 3) {
                 console.log("Game Over should trigger now."); // Debugging output
                 this.physics.pause();
+                this.stopLaserResetTimer();
                 player.setTint(0xff0000);
                 const gameOverText = this.add
                   .text(
@@ -462,12 +520,18 @@ const GameComponent = dynamic(
                   .setOrigin(0.5)
                   .setInteractive()
                   .on("pointerdown", () => {
+                    this.gameIsActive = true;
                     this.clearEnemyStates();
                     this.enemiesHit = 0;
                     this.score = 0; // Explicitly reset the score
                     this.scoreText.setText(`Score: 0`); // Update the score text
                     this.enemiesKilledWithLaser = 0; // Reset any other relevant game state
                     this.enemiesKilledText.setText(`Enemies killed: 0`);
+                    // Reset and restart the timer here
+                    this.timeUntilNextReset = this.laserResetDuration;
+                    this.setupLaserResetTimer(); // Re-setup the timer
+                    this.drawLaserResetBar(); // Redraw the external UI bar to full
+
                     this.scene.restart();
                   });
               }
@@ -533,7 +597,28 @@ const GameComponent = dynamic(
             window.removeEventListener("resize", resizeGame);
           };
         }, [game]);
-        return <div ref={gameRef} style={{ width: "100%", height: "100%" }} />;
+        return (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div id="game-ui" style={{ width: "200px", padding: "10px" }}>
+              <h1 id="score">Score: 0</h1>
+              <h1 id="hit-rate">Hit Rate: 0%</h1>
+              <h1 id="enemies-killed">Enemies Killed: 0</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: 0/3</h1>
+              <div
+                id="laser-reset-bar"
+                style={{
+                  width: "100%",
+                  height: "20px",
+                  backgroundColor: "#ddd",
+                }}
+              ></div>
+            </div>
+            <div
+              ref={gameRef}
+              style={{ width: "800px", height: "600px" }}
+            ></div>
+          </div>
+        );
       };
       return Game;
     }),
