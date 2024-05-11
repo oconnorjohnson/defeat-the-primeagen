@@ -415,6 +415,10 @@ const GameComponent = dynamic(
                   .on("pointerdown", () => {
                     this.clearEnemyStates();
                     this.enemiesHit = 0;
+                    this.score = 0; // Explicitly reset the score
+                    this.scoreText.setText(`Score: 0`); // Update the score text
+                    this.enemiesKilledWithLaser = 0; // Reset any other relevant game state
+                    this.enemiesKilledText.setText(`Enemies killed: 0`);
                     this.scene.restart();
                   });
               }
