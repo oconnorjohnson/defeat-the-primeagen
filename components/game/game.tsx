@@ -233,24 +233,20 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
-          if (this.gameIsActive) {
-            this.timeUntilNextReset -= delta;
-            this.drawLaserResetBar();
-          }
           if (
             this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
             )
           ) {
-            this.player.setVelocityX(-500);
+            this.player.setVelocityX(-1000); // Increased static velocity
           } else if (
             this.cursors.right.isDown ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L)
             )
           ) {
-            this.player.setVelocityX(500);
+            this.player.setVelocityX(1000); // Increased static velocity
           } else {
             this.player.setVelocityX(0);
           }
