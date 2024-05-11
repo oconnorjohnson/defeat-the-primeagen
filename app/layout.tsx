@@ -22,8 +22,8 @@ export default function RootLayout({
         style={{ display: "flex", flexDirection: "column", height: "100vh" }}
       >
         {children}
-        <RiveServers />
-        <RiveHands />
+        {/* <RiveServers />
+        <RiveHands /> */}
       </body>
     </html>
   );
