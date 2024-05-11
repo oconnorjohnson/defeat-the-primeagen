@@ -191,7 +191,28 @@ const GameComponent = dynamic(
             this.acceptanceRateText.setText(
               `Hit Rate: ${acceptanceRate.toFixed(2)}%`
             );
+            const hitRateElement = document.getElementById("hit-rate");
+            if (hitRateElement) {
+              hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
+                2
+              )}%`;
+            }
+          } else {
+            // Set to 0% if no friendlies have passed yet to avoid NaN%
+            this.acceptanceRateText.setText("Hit Rate: 0%");
+            const hitRateElement = document.getElementById("hit-rate");
+            if (hitRateElement) {
+              hitRateElement.innerText = "Hit Rate: 0%";
+            }
           }
+        }
+        updateEnemyCollisions() {
+          const enemyCollisionsElement =
+            document.getElementById("enemy-collisions");
+          if (enemyCollisionsElement) {
+            enemyCollisionsElement.innerText = `Enemy Collisions: ${this.enemiesHit}/3`;
+          }
+          this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`); // Update internal UI
         }
         stopLaserResetTimer() {
           if (this.laserResetTimer) {
@@ -299,7 +320,9 @@ const GameComponent = dynamic(
         }
         updateScore() {
           const scoreElement = document.getElementById("score");
-          if (scoreElement) scoreElement.innerText = `Score: ${this.score}`;
+          if (scoreElement) {
+            scoreElement.innerText = `Score: ${this.score}`;
+          }
         }
 
         updateHitRate() {
@@ -440,6 +463,7 @@ const GameComponent = dynamic(
           ) {
             friendly.disableBody(true, true);
             this.score += 1;
+            this.updateScore();
             this.scoreText.setText(`Score: ${this.score}`);
             this.friendliesCollected++;
             this.totalFriendliesPassed++;
@@ -480,6 +504,7 @@ const GameComponent = dynamic(
               console.log(`Enemy Hit: ${this.enemiesHit}`); // Debugging output
               this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
 
+              this.updateEnemyCollisions();
               enemy.setActive(false).setVisible(false);
 
               this.time.delayedCall(1000, () => {
@@ -523,10 +548,16 @@ const GameComponent = dynamic(
                     this.gameIsActive = true;
                     this.clearEnemyStates();
                     this.enemiesHit = 0;
-                    this.score = 0; // Explicitly reset the score
+                    this.updateEnemyCollisions();
+                    this.score = 0;
+                    this.updateScore(); // Explicitly reset the score
                     this.scoreText.setText(`Score: 0`); // Update the score text
                     this.enemiesKilledWithLaser = 0; // Reset any other relevant game state
                     this.enemiesKilledText.setText(`Enemies killed: 0`);
+                    this.friendliesCollected = 0; // Reset collected friendlies
+                    this.totalFriendliesPassed = 0; // Reset passed friendlies
+                    this.updateHitRate(); // Explicitly update the hit rate
+                    this.updateAcceptanceRate(); // Update acceptance rate if needed
                     // Reset and restart the timer here
                     this.timeUntilNextReset = this.laserResetDuration;
                     this.setupLaserResetTimer(); // Re-setup the timer
