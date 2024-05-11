@@ -11,7 +11,7 @@ import {
   triggerLeftRingAtom,
   triggerLeftPinkyAtom,
 } from "@/state/atoms";
-import Game from "@/components/game";
+import Game from "@/components/game/game";
 
 export default function Simple() {
   const [, setTriggerRightThumb] = useAtom(triggerRightThumbAtom);
