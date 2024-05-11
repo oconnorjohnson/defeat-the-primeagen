@@ -569,8 +569,8 @@ const GameComponent = dynamic(
           if (game) return;
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
-            width: 800,
-            height: 600,
+            width: 1400,
+            height: 750,
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -614,10 +614,12 @@ const GameComponent = dynamic(
         useEffect(() => {
           const resizeGame = () => {
             if (gameRef.current && game) {
-              const { width, height } = gameRef.current.getBoundingClientRect();
+              const width = window.innerWidth;
+              const height = window.innerHeight;
               game.scale.resize(width, height);
             }
           };
+
           window.addEventListener("resize", resizeGame);
           return () => {
             window.removeEventListener("resize", resizeGame);
@@ -645,7 +647,7 @@ const GameComponent = dynamic(
             </div>
             <div
               ref={gameRef}
-              style={{ width: "800px", height: "600px" }}
+              style={{ width: "1400px", height: "750px" }}
             ></div>
           </div>
         );

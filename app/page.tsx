@@ -61,10 +61,8 @@ export default function Simple() {
   ]);
   // return <RiveDemo />;
   return (
-    <div className="fixed w-screen h-screen bg-transparent z-20 flex flex-col items-center pt-20 pb-4 pl-12 pr-10">
-      <div className="z-50 rounded-3xl">
-        <Game />
-      </div>
+    <div className="fixed top-0 left-0 w-full h-full bg-transparent z-20 flex justify-center items-center">
+      <Game />
     </div>
   );
 }
