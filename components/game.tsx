@@ -171,12 +171,14 @@ const GameComponent = dynamic(
         }
         update() {
           if (
+            this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
             )
           ) {
             this.player.setVelocityX(-500);
           } else if (
+            this.cursors.right.isDown ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L)
             )
@@ -187,6 +189,9 @@ const GameComponent = dynamic(
           }
 
           if (
+            this.input.keyboard!.checkDown(
+              this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F)
+            ) ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(
                 Phaser.Input.Keyboard.KeyCodes.BACKSPACE
@@ -228,30 +233,6 @@ const GameComponent = dynamic(
             undefined,
             this
           );
-          // this.physics.add.collider(
-          //   this.player,
-          //   this.enemies,
-          //   (object1, object2) => {
-          //     const player =
-          //       object1 instanceof Phaser.Physics.Arcade.Sprite
-          //         ? object1
-          //         : object2;
-          //     const enemy =
-          //       object1 instanceof Phaser.Physics.Arcade.Sprite
-          //         ? object2
-          //         : object1;
-
-          //     if (
-          //       enemy instanceof Phaser.Physics.Arcade.Sprite &&
-          //       enemy.active
-          //     ) {
-          //       if (enemy.body) {
-          //         enemy.setActive(false).setVisible(false);
-          //         enemy.body.enable = false;
-          //       }
-          //     }
-          //   }
-          // );
         }
         hitPlayer(
           player: Phaser.Physics.Arcade.Sprite,
