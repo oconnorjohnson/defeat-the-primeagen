@@ -73,7 +73,6 @@ const GameComponent = dynamic(
           });
           this.enemies.children.iterate((enemy) => {
             if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
-              // Assuming you've already set the size as above
               enemy.body!.setOffset(
                 (enemy.width - (enemy.width - 10)) / 2,
                 (enemy.height - (enemy.height - 10)) / 2
@@ -137,12 +136,9 @@ const GameComponent = dynamic(
                 enemy.setActive(false).setVisible(false);
                 enemy.body!.enable = false;
                 this.score += 1;
-                this.scoreText.setText(`Score: ${this.score}`);
+
                 this.enemiesKilledWithLaser += 1;
                 this.updateEnemiesKilled();
-                this.enemiesKilledText.setText(
-                  `Enemies killed: ${this.enemiesKilledWithLaser}`
-                );
               }
             }
           );
@@ -167,30 +163,12 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
-          this.scoreText = this.add.text(16, 16, "Score: 0", {
-            fontSize: "32px",
-            color: "000000",
-          });
-          this.enemiesKilledText = this.add.text(16, 112, "Enemies killed: 0", {
-            fontSize: "32px",
-            color: "#ff0000",
-          });
-          this.acceptanceRateText = this.add.text(16, 50, "Hit Rate: 0%", {
-            fontSize: "32px",
-            color: "#000000",
-          });
-          this.enemiesHitText = this.add.text(16, 80, "Enemy Collisions: 0/3", {
-            fontSize: "32px",
-            color: "#ff0000",
-          });
         }
         updateAcceptanceRate() {
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-            this.acceptanceRateText.setText(
-              `Hit Rate: ${acceptanceRate.toFixed(2)}%`
-            );
+
             const hitRateElement = document.getElementById("hit-rate");
             if (hitRateElement) {
               hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
@@ -198,8 +176,6 @@ const GameComponent = dynamic(
               )}%`;
             }
           } else {
-            // Set to 0% if no friendlies have passed yet to avoid NaN%
-            this.acceptanceRateText.setText("Hit Rate: 0%");
             const hitRateElement = document.getElementById("hit-rate");
             if (hitRateElement) {
               hitRateElement.innerText = "Hit Rate: 0%";
@@ -212,7 +188,6 @@ const GameComponent = dynamic(
           if (enemyCollisionsElement) {
             enemyCollisionsElement.innerText = `Enemy Collisions: ${this.enemiesHit}/3`;
           }
-          this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`); // Update internal UI
         }
         stopLaserResetTimer() {
           if (this.laserResetTimer) {
@@ -224,8 +199,8 @@ const GameComponent = dynamic(
               loop: true,
             });
           }
-          this.gameIsActive = false; // Stop updating the timer in the update loop
-          this.timeUntilNextReset = this.laserResetDuration; // Set the time to full
+          this.gameIsActive = false;
+          this.timeUntilNextReset = this.laserResetDuration;
           this.drawLaserResetBar();
         }
         update(time: number, delta: number) {
@@ -269,7 +244,7 @@ const GameComponent = dynamic(
               friendly.setActive(false).setVisible(false);
               this.score -= 1;
               this.updateScore();
-              this.scoreText.setText(`Score: ${this.score}`);
+
               this.totalFriendliesPassed++;
               this.updateAcceptanceRate();
             }
@@ -303,7 +278,7 @@ const GameComponent = dynamic(
           enemy: Phaser.Physics.Arcade.Sprite
         ) {
           this.score -= 1;
-          this.scoreText.setText(`Score: ${this.score}`);
+
           if (enemy.body && enemy.active) {
             enemy.setActive(false).setVisible(false);
             enemy.body.enable = false;
@@ -313,9 +288,9 @@ const GameComponent = dynamic(
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
             const barWidth =
-              (this.timeUntilNextReset / this.laserResetDuration) * 100; // Calculate percentage
+              (this.timeUntilNextReset / this.laserResetDuration) * 100;
             laserResetBar.style.width = `${barWidth}%`;
-            laserResetBar.style.backgroundColor = "#00ff00"; // Green color
+            laserResetBar.style.backgroundColor = "#00ff00";
           }
         }
         updateScore() {
@@ -342,23 +317,19 @@ const GameComponent = dynamic(
         }
         setupLaserResetTimer() {
           if (this.laserResetTimer) {
-            this.laserResetTimer.remove(); // Remove existing timer if any
+            this.laserResetTimer.remove();
           }
           this.laserResetTimer = this.time.addEvent({
             delay: this.laserResetDuration,
             callback: () => {
               this.resetLasers();
-              this.drawLaserResetBar(); // Ensure this updates the external UI
+              this.drawLaserResetBar();
             },
             callbackScope: this,
             loop: true,
           });
         }
         shootLaser() {
-          console.log(
-            "Attempting to shoot a laser. Available lasers:",
-            this.availableLasers
-          );
           if (this.availableLasers > 0) {
             let laser = this.lasers.getFirstDead(false);
             if (!laser) {
@@ -378,14 +349,10 @@ const GameComponent = dynamic(
               laser.setVisible(true);
               laser.body.allowGravity = false;
               laser.setVelocityY(-800);
-              this.availableLasers--; // Decrement the available lasers
-              console.log(
-                "Laser fired. Remaining lasers:",
-                this.availableLasers
-              );
+              this.availableLasers--;
             }
           } else {
-            console.log("No lasers available to fire.");
+            // console.log("No lasers available to fire.");
           }
         }
         resetLasers() {
@@ -464,7 +431,7 @@ const GameComponent = dynamic(
             friendly.disableBody(true, true);
             this.score += 1;
             this.updateScore();
-            this.scoreText.setText(`Score: ${this.score}`);
+
             this.friendliesCollected++;
             this.totalFriendliesPassed++;
             this.updateHitRate();
@@ -500,25 +467,17 @@ const GameComponent = dynamic(
             if (!enemy.getData("isHit")) {
               enemy.setData("isHit", true);
               enemy.setData("inDebounce", true);
-
-              console.log(`Enemy Hit: ${this.enemiesHit}`); // Debugging output
-              this.enemiesHitText.setText(`Hits: ${this.enemiesHit}/3`);
-
               this.updateEnemyCollisions();
               enemy.setActive(false).setVisible(false);
-
               this.time.delayedCall(1000, () => {
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
               });
-
-              // Check if the game should end after updating enemiesHit
               if (this.enemiesHit >= 3) {
-                console.log("Game Over should trigger now."); // Debugging output
                 this.physics.pause();
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
-                const gameOverText = this.add
+                this.add
                   .text(
                     this.scale.width / 2,
                     this.scale.height / 2,
@@ -529,8 +488,7 @@ const GameComponent = dynamic(
                     }
                   )
                   .setOrigin(0.5);
-
-                const restartButton = this.add
+                this.add
                   .text(
                     this.scale.width / 2,
                     this.scale.height / 2 + 50,
@@ -550,19 +508,15 @@ const GameComponent = dynamic(
                     this.enemiesHit = 0;
                     this.updateEnemyCollisions();
                     this.score = 0;
-                    this.updateScore(); // Explicitly reset the score
-                    this.scoreText.setText(`Score: 0`); // Update the score text
-                    this.enemiesKilledWithLaser = 0; // Reset any other relevant game state
-                    this.enemiesKilledText.setText(`Enemies killed: 0`);
-                    this.friendliesCollected = 0; // Reset collected friendlies
-                    this.totalFriendliesPassed = 0; // Reset passed friendlies
-                    this.updateHitRate(); // Explicitly update the hit rate
-                    this.updateAcceptanceRate(); // Update acceptance rate if needed
-                    // Reset and restart the timer here
+                    this.updateScore();
+                    this.enemiesKilledWithLaser = 0;
+                    this.friendliesCollected = 0;
+                    this.totalFriendliesPassed = 0;
+                    this.updateHitRate();
+                    this.updateAcceptanceRate();
                     this.timeUntilNextReset = this.laserResetDuration;
-                    this.setupLaserResetTimer(); // Re-setup the timer
-                    this.drawLaserResetBar(); // Redraw the external UI bar to full
-
+                    this.setupLaserResetTimer();
+                    this.drawLaserResetBar();
                     this.scene.restart();
                   });
               }
