@@ -31,6 +31,9 @@ const GameComponent = dynamic(
         lasers!: Phaser.Physics.Arcade.Group;
         availableLasers: number = 10;
         laserResetTimer!: Phaser.Time.TimerEvent;
+        laserResetBar!: Phaser.GameObjects.Graphics;
+        laserResetDuration: number = 30000;
+        timeUntilNextReset: number = 30000;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
