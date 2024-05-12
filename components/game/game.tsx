@@ -39,6 +39,8 @@ const GameComponent = dynamic(
         laserResetDuration: number = 30000;
         timeUntilNextReset: number = 30000;
         gameDurationTimer!: Phaser.Time.TimerEvent;
+        gameStartTime!: number;
+        gameEndTime!: number;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
@@ -47,6 +49,16 @@ const GameComponent = dynamic(
         }
         create() {
           this.cameras.main.setBackgroundColor("#b0c4de");
+          this.gameStartTime = Date.now();
+          this.gameDurationTimer = this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+              const currentTime = Date.now();
+              const elapsedTime = currentTime - this.gameStartTime;
+            },
+            callbackScope: this,
+            loop: true,
+          });
           const playerStartX = this.scale.width / 2;
           const playerStartY = this.scale.height - 50;
           this.player = this.physics.add.sprite(
@@ -55,22 +67,18 @@ const GameComponent = dynamic(
             "player"
           );
           this.player.setCollideWorldBounds(true);
-
-          // Initialize the player trail group
           this.playerTrail = this.add.group({
-            max: 0.1, // Maximum number of trail sprites
+            max: 0.1,
             classType: Phaser.GameObjects.Image,
           });
-
-          // Create initial trail sprites
           for (let i = 0; i < 1; i++) {
             const trailSprite = this.add.image(
               this.player.x,
               this.player.y,
               "player"
             );
-            trailSprite.setScale(1 - i * 0.01); // Slightly decreasing size
-            trailSprite.setAlpha(1 - i * 0.1); // Decreasing opacity
+            trailSprite.setScale(1 - i * 0.01);
+            trailSprite.setAlpha(1 - i * 0.1);
             this.playerTrail.add(trailSprite);
           }
           this.physics.world.setBounds(
@@ -109,6 +117,7 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
@@ -186,6 +195,17 @@ const GameComponent = dynamic(
             loop: true,
           });
         }
+        updateTotalGameTime() {
+          const currentTime = Date.now();
+          const elapsedTime = currentTime - this.gameStartTime; // Calculate elapsed time
+          const totalGameTimeElement =
+            document.getElementById("total-game-time");
+          if (totalGameTimeElement) {
+            totalGameTimeElement.innerText = `Total Game Time: ${(
+              elapsedTime / 1000
+            ).toFixed(2)} seconds`; // Update the text of the element
+          }
+        }
         updateAcceptanceRate() {
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
@@ -226,8 +246,8 @@ const GameComponent = dynamic(
           this.drawLaserResetBar();
         }
         update(time: number, delta: number) {
-          const velocityPerSecond = 500; // pixels per second
-          const deltaInSeconds = delta / 1000; // convert delta to seconds
+          const velocityPerSecond = 500;
+          const deltaInSeconds = delta / 1000;
 
           if (this.cursors.left.isDown) {
             this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
@@ -242,14 +262,14 @@ const GameComponent = dynamic(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.H)
             )
           ) {
-            this.player.setVelocityX(-1000); // Increased static velocity
+            this.player.setVelocityX(-1000);
           } else if (
             this.cursors.right.isDown ||
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L)
             )
           ) {
-            this.player.setVelocityX(1000); // Increased static velocity
+            this.player.setVelocityX(1000);
           } else {
             this.player.setVelocityX(0);
           }
@@ -297,7 +317,7 @@ const GameComponent = dynamic(
             const tempPosition = { x: currentTrail.x, y: currentTrail.y };
             currentTrail.setPosition(lastPosition.x, lastPosition.y);
             lastPosition = tempPosition;
-            currentTrail.setAlpha(1 - index * 0.1); // Update alpha based on position in the trail
+            currentTrail.setAlpha(1 - index * 0.1);
           });
         }
         setupColliders() {
@@ -511,6 +531,10 @@ const GameComponent = dynamic(
               });
               if (this.enemiesHit >= 3) {
                 this.physics.pause();
+                this.gameEndTime = Date.now();
+                this.gameDurationTimer.remove();
+                this.updateTotalGameTime();
+                const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
                 this.add
@@ -637,6 +661,7 @@ const GameComponent = dynamic(
               <h1 id="hit-rate">Hit Rate: 0%</h1>
               <h1 id="enemies-killed">Enemies Killed: 0</h1>
               <h1 id="enemy-collisions">Enemy Collisions: 0/3</h1>
+              <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
               <div
                 id="laser-reset-bar"
                 style={{
