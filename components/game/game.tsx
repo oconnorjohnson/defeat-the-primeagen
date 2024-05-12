@@ -1,4 +1,5 @@
 "use client";
+
 import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
