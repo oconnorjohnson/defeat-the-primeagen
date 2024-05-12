@@ -38,6 +38,7 @@ const GameComponent = dynamic(
         playerTrail!: Phaser.GameObjects.Group;
         laserResetDuration: number = 30000;
         timeUntilNextReset: number = 30000;
+        gameDurationTimer!: Phaser.Time.TimerEvent;
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
