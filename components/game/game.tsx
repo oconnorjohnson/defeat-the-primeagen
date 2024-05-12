@@ -1,4 +1,6 @@
 "use client";
+
+import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
@@ -585,9 +587,11 @@ const GameComponent = dynamic(
           };
         }, []);
         useEffect(() => {
-          const handleKeyDown = (event: KeyboardEvent) => {
+          const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
+              // update DB here
+              console.log(await updateGameStats());
             }
           };
           window.addEventListener("keydown", handleKeyDown);
