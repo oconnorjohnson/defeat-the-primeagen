@@ -1,0 +1,50 @@
+** insert all achievements **
+
+for achievement in {
+    'deez nuts',
+    'skill issues',
+    'Brazil mentioned',
+    'OCamel mentioned',
+    'Rust Mentioned',
+    'Giga Chad',
+    'CHAD stack',
+    'React Andy',
+    'Tom\'s a Genius',
+    'Devon',
+    'Functional Programming + Tye-dye',
+    'Hackerman',
+    'Furries',
+    'Squeel',
+    'Falcore Mentioned',
+    'Netflix btw',
+    'Arch',
+    'Zig mentioned',
+    '420',
+    '69',
+    'Real-talk',
+    'L take',
+    'Got the W',
+    'Big influencer money',
+    'Back door wang',
+    'Five dollars a month!',
+    'In Shambles'
+} union (
+    insert Achievement {
+        name := achievement,
+    }
+);
+
+** insert all stats **
+
+
+for stat in {
+    'score',
+    'enemies collisions',
+    'friendly collisions',
+    'enemies missed',
+    'lasers shot',
+} union (
+    insert Stat {
+        name := stat,
+    }
+);
