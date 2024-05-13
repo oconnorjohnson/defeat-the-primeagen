@@ -46,6 +46,8 @@ const GameComponent = dynamic(
         gameDurationTimer!: Phaser.Time.TimerEvent;
         gameStartTime!: number;
         gameEndTime!: number;
+        lastLaserShotTime: number = 0;
+        laserCooldown: number = 250; // ms
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -170,7 +172,7 @@ const GameComponent = dynamic(
             }
           );
           // create a physics collider for the lasers and the enemies
-          // if the laser collids with an enemy, we
+          // if the laser collids with an enemy, we set the laser
           this.physics.add.collider(
             this.lasers,
             this.enemies,
@@ -179,8 +181,6 @@ const GameComponent = dynamic(
                 laser instanceof Phaser.Physics.Arcade.Image &&
                 enemy instanceof Phaser.Physics.Arcade.Sprite
               ) {
-                laser.setActive(false).setVisible(false);
-                enemy.setActive(false).setVisible(false);
                 laser.setActive(false).setVisible(false);
                 enemy.setActive(false).setVisible(false);
                 enemy.body!.enable = false;
@@ -404,7 +404,11 @@ const GameComponent = dynamic(
           });
         }
         shootLaser() {
-          if (this.availableLasers > 0) {
+          const currentTime = Date.now();
+          if (
+            this.availableLasers > 0 &&
+            currentTime - this.lastLaserShotTime > this.laserCooldown
+          ) {
             let laser = this.lasers.getFirstDead(false);
             if (!laser) {
               laser = this.lasers.create(
@@ -424,6 +428,7 @@ const GameComponent = dynamic(
               laser.body.allowGravity = false;
               laser.setVelocityY(-800);
               this.availableLasers--;
+              this.lastLaserShotTime = currentTime;
             }
           } else {
             // console.log("No lasers available to fire.");
