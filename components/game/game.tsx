@@ -5,21 +5,26 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
 import { gamePausedAtom } from "@/state/atoms";
-
+// game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
+// MainScene defines the game logic and state
+// Create is a function that creates a new instance of the MainScene class
+// Update is a function called on every frame of phaser's game loop
 const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
-        gameIsActive: boolean = true;
-        score: number;
-        scoreText!: Phaser.GameObjects.Text;
-        enemiesKilledWithLaser: number = 0;
-        enemiesKilledText!: Phaser.GameObjects.Text;
+        // mainscene class constructor
         constructor() {
           super({ key: "MainScene" });
           this.score = 0;
           this.hitEnemy = this.hitEnemy;
         }
+        // game state variables
+        gameIsActive: boolean = true;
+        score: number;
+        scoreText!: Phaser.GameObjects.Text;
+        enemiesKilledWithLaser: number = 0;
+        enemiesKilledText!: Phaser.GameObjects.Text;
         player!: Phaser.Physics.Arcade.Sprite;
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
         enemies!: Phaser.Physics.Arcade.Group;
@@ -41,12 +46,14 @@ const GameComponent = dynamic(
         gameDurationTimer!: Phaser.Time.TimerEvent;
         gameStartTime!: number;
         gameEndTime!: number;
+        // preload game assets
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
           this.load.image("friendly", "/good.png");
           this.load.image("laser", "/laser.png");
         }
+        // create class method that runs on game start
         create() {
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
@@ -67,10 +74,12 @@ const GameComponent = dynamic(
             "player"
           );
           this.player.setCollideWorldBounds(true);
+          // create a group for player trails
           this.playerTrail = this.add.group({
             max: 0.1,
             classType: Phaser.GameObjects.Image,
           });
+          // iterate overal over the player adding a trail (simulate motion blur)
           for (let i = 0; i < 1; i++) {
             const trailSprite = this.add.image(
               this.player.x,
@@ -101,6 +110,7 @@ const GameComponent = dynamic(
             maxSize: -1,
             runChildUpdate: true,
           });
+          // iterate over spawned enemies, adjust offset which gives us a smaller hitbox than enemy's visual size and centers said hitbox
           this.enemies.children.iterate((enemy) => {
             if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
               enemy.body!.setOffset(
@@ -110,14 +120,16 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          // give the kid 10 lasers to start
           this.availableLasers = 10;
+          // and give him more every 30 seconds
           this.laserResetTimer = this.time.addEvent({
             delay: 30000,
             callback: this.resetLasers,
             callbackScope: this,
             loop: true,
           });
-
+          // if we got a laser group, we better block gravity on that shit
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
@@ -127,8 +139,11 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          // give the kid a laser reset bar
           this.laserResetBar = this.add.graphics();
+          // can't forget to draw that bih to the scene
           this.drawLaserResetBar();
+          // now create the 30 second timer as a delay after which we resest da boys lasers AND reset the timer
           this.laserResetTimer = this.time.addEvent({
             delay: this.laserResetDuration,
             callback: () => {
@@ -138,6 +153,8 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+          // create a physics collider for the kid and prime's spawn
+          // if the player collides with bad reqs, we set the enemy's body to inbisible, stop its motion, disable its physivs, add one to "enemiesHit", remove the enemy from the scene, and update the scorfe
           this.physics.add.collider(
             this.player,
             this.enemies,
@@ -152,7 +169,8 @@ const GameComponent = dynamic(
               }
             }
           );
-
+          // create a physics collider for the lasers and the enemies
+          // if the laser collids with an enemy, we
           this.physics.add.collider(
             this.lasers,
             this.enemies,
