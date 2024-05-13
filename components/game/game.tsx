@@ -304,7 +304,7 @@ const GameComponent = dynamic(
           ) {
             this.shootLaser();
           }
-
+          this.drawLaserResetBar();
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -316,6 +316,8 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          this.drawLaserResetBar();
+
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -359,12 +361,15 @@ const GameComponent = dynamic(
           }
         }
         drawLaserResetBar() {
+          const currentTime = Date.now();
+          const timePassed = currentTime - this.lastLaserShotTime;
+          const timeLeft = this.laserResetDuration - timePassed;
+          const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
+
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
-            const barWidth =
-              (this.timeUntilNextReset / this.laserResetDuration) * 100;
-            laserResetBar.style.width = `${barWidth}%`;
-            laserResetBar.style.backgroundColor = "#00ff00";
+            laserResetBar.style.width = `${percentageLeft}%`;
+            laserResetBar.style.backgroundColor = "#00ff00"; // Green color
           }
         }
         updateScore() {
@@ -402,6 +407,8 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+          this.lastLaserShotTime = Date.now();
+          this.timeUntilNextReset = this.laserResetDuration;
         }
         shootLaser() {
           const currentTime = Date.now();
