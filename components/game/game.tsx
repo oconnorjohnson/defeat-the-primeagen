@@ -55,8 +55,14 @@ const GameComponent = dynamic(
           this.load.image("friendly", "/good.png");
           this.load.image("laser", "/laser.png");
         }
+        //  initialize game elements
+        initializeGameElements() {
+          this.setupLaserResetTimer();
+          this.drawLaserResetBar();
+        }
         // create class method that runs on game start
         create() {
+          this.initializeGameElements();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
           this.gameDurationTimer = this.time.addEvent({
@@ -265,7 +271,6 @@ const GameComponent = dynamic(
           }
           this.gameIsActive = false;
           this.timeUntilNextReset = this.laserResetDuration;
-          this.drawLaserResetBar();
         }
 
         update(time: number, delta: number) {
@@ -569,6 +574,7 @@ const GameComponent = dynamic(
                 enemy.setActive(true).setVisible(true);
               });
               if (this.enemiesHit >= 3) {
+                this.gameIsActive = false;
                 this.physics.pause();
                 this.gameEndTime = Date.now();
                 this.gameDurationTimer.remove();
@@ -617,6 +623,7 @@ const GameComponent = dynamic(
                     this.setupLaserResetTimer();
                     this.drawLaserResetBar();
                     this.scene.restart();
+                    this.initializeGameElements();
                   });
               }
             }
