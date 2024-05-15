@@ -156,7 +156,7 @@ const GameComponent = dynamic(
             loop: true,
           });
           // create a physics collider for the kid and prime's spawn
-          // if the player collides with bad reqs, we set the enemy's body to inbisible, stop its motion, disable its physivs, add one to "enemiesHit", remove the enemy from the scene, and update the scorfe
+          // if the player collides with bad reqs, we set the enemy's body to invisible, stop its motion, disable its physics, add one to "enemiesHit", remove the enemy from the scene, and update the score
           this.physics.add.collider(
             this.player,
             this.enemies,
@@ -172,7 +172,7 @@ const GameComponent = dynamic(
             }
           );
           // create a physics collider for the lasers and the enemies
-          // if the laser collids with an enemy, we set the laser
+          // if the laser collids with an enemy, we set the laser to invisible, stop its motion, disable its physics, and update the score
           this.physics.add.collider(
             this.lasers,
             this.enemies,
@@ -213,17 +213,19 @@ const GameComponent = dynamic(
             loop: true,
           });
         }
+
         updateTotalGameTime() {
           const currentTime = Date.now();
-          const elapsedTime = currentTime - this.gameStartTime; // Calculate elapsed time
+          const elapsedTime = currentTime - this.gameStartTime;
           const totalGameTimeElement =
             document.getElementById("total-game-time");
           if (totalGameTimeElement) {
             totalGameTimeElement.innerText = `Total Game Time: ${(
               elapsedTime / 1000
-            ).toFixed(2)} seconds`; // Update the text of the element
+            ).toFixed(2)} seconds`;
           }
         }
+
         updateAcceptanceRate() {
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
@@ -242,6 +244,7 @@ const GameComponent = dynamic(
             }
           }
         }
+
         updateEnemyCollisions() {
           const enemyCollisionsElement =
             document.getElementById("enemy-collisions");
@@ -249,6 +252,7 @@ const GameComponent = dynamic(
             enemyCollisionsElement.innerText = `Enemy Collisions: ${this.enemiesHit}/3`;
           }
         }
+
         stopLaserResetTimer() {
           if (this.laserResetTimer) {
             this.laserResetTimer.remove();
@@ -263,10 +267,10 @@ const GameComponent = dynamic(
           this.timeUntilNextReset = this.laserResetDuration;
           this.drawLaserResetBar();
         }
+
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
-
           if (this.cursors.left.isDown) {
             this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
           } else if (this.cursors.right.isDown) {
@@ -291,7 +295,6 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
-
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F)
@@ -317,7 +320,6 @@ const GameComponent = dynamic(
             return true;
           });
           this.drawLaserResetBar();
-
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -340,6 +342,7 @@ const GameComponent = dynamic(
             currentTrail.setAlpha(1 - index * 0.1);
           });
         }
+
         setupColliders() {
           this.physics.add.overlap(
             this.player,
@@ -349,6 +352,7 @@ const GameComponent = dynamic(
             this
           );
         }
+
         hitPlayer(
           player: Phaser.Physics.Arcade.Sprite,
           enemy: Phaser.Physics.Arcade.Sprite
@@ -360,6 +364,7 @@ const GameComponent = dynamic(
             enemy.body.enable = false;
           }
         }
+
         drawLaserResetBar() {
           const currentTime = Date.now();
           const timePassed = currentTime - this.lastLaserShotTime;
@@ -369,9 +374,10 @@ const GameComponent = dynamic(
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
             laserResetBar.style.width = `${percentageLeft}%`;
-            laserResetBar.style.backgroundColor = "#00ff00"; // Green color
+            laserResetBar.style.backgroundColor = "#00ff00";
           }
         }
+
         updateScore() {
           const scoreElement = document.getElementById("score");
           if (scoreElement) {
@@ -394,6 +400,7 @@ const GameComponent = dynamic(
           if (enemiesKilledElement)
             enemiesKilledElement.innerText = `Enemies Killed: ${this.enemiesKilledWithLaser}`;
         }
+
         setupLaserResetTimer() {
           if (this.laserResetTimer) {
             this.laserResetTimer.remove();
@@ -410,6 +417,7 @@ const GameComponent = dynamic(
           this.lastLaserShotTime = Date.now();
           this.timeUntilNextReset = this.laserResetDuration;
         }
+
         shootLaser() {
           const currentTime = Date.now();
           if (
@@ -441,12 +449,14 @@ const GameComponent = dynamic(
             // console.log("No lasers available to fire.");
           }
         }
+
         resetLasers() {
           this.availableLasers = 10;
           this.timeUntilNextReset = this.laserResetDuration;
           this.setupLaserResetTimer();
           this.drawLaserResetBar();
         }
+
         laserHitEnemy(
           object1:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -474,17 +484,16 @@ const GameComponent = dynamic(
             enemy.body!.enable = false;
           }
         }
+
         spawnEnemy() {
           let enemy = this.enemies.getFirstDead(false);
           if (!enemy) {
-            // Create a new enemy if no inactive ones are available
             enemy = this.enemies.create(
               Phaser.Math.Between(0, this.scale.width),
               -50,
               "enemy"
             );
           } else {
-            // Properly reinitialize the enemy
             enemy.setPosition(Phaser.Math.Between(0, this.scale.width), -50);
             enemy.setActive(true).setVisible(true);
             enemy.body.enable = true;
