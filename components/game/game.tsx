@@ -371,6 +371,13 @@ const GameComponent = dynamic(
         }
 
         drawLaserResetBar() {
+          if (!this.gameIsActive) {
+            const laserResetBar = document.getElementById("laser-reset-bar");
+            if (laserResetBar) {
+              laserResetBar.style.width = "100%";
+            }
+            return;
+          }
           const currentTime = Date.now();
           const timePassed = currentTime - this.lastLaserShotTime;
           const timeLeft = this.laserResetDuration - timePassed;
