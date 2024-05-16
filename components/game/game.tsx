@@ -545,6 +545,7 @@ const GameComponent = dynamic(
             this.updateAcceptanceRate();
           }
         }
+
         clearEnemyStates() {
           this.enemies.children.iterate(
             (enemy: Phaser.GameObjects.GameObject) => {
@@ -559,6 +560,7 @@ const GameComponent = dynamic(
             }
           );
         }
+
         hitEnemy(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -637,6 +639,7 @@ const GameComponent = dynamic(
           }
         }
       }
+
       const Game = () => {
         const gameRef = useRef<HTMLDivElement>(null);
         const [game, setGame] = useState<Phaser.Game | null>(null);
@@ -704,6 +707,7 @@ const GameComponent = dynamic(
             window.removeEventListener("resize", resizeGame);
           };
         }, [game]);
+
         return (
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div
@@ -725,10 +729,6 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            {/* <div
-              ref={gameRef}
-              style={{ width: "1400px", height: "750px" }}
-            ></div> */}
             {!gameStarted && (
               <button
                 onClick={() => setGameStarted(true)}
