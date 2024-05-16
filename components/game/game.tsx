@@ -725,16 +725,34 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            <div
+            {/* <div
               ref={gameRef}
               style={{ width: "1400px", height: "750px" }}
-            ></div>
+            ></div> */}
+            {!gameStarted && (
+              <button
+                onClick={() => setGameStarted(true)}
+                style={{
+                  padding: "10px 20px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              >
+                Start Game
+              </button>
+            )}
+            {gameStarted && (
+              <div
+                ref={gameRef}
+                style={{ width: "1000px", height: "750px" }}
+              ></div>
+            )}
           </div>
         );
       };
       return Game;
     }),
-  { ssr: false }
+  { ssr: false, loading: () => <p>Loading game...</p> }
 );
 
 export default GameComponent;
