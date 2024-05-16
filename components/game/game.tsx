@@ -4,7 +4,7 @@ import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
-import { gamePausedAtom } from "@/state/atoms";
+import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -640,9 +640,10 @@ const GameComponent = dynamic(
       const Game = () => {
         const gameRef = useRef<HTMLDivElement>(null);
         const [game, setGame] = useState<Phaser.Game | null>(null);
+        const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
         useEffect(() => {
-          if (game) return;
+          if (game || !gameStarted) return;
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
@@ -663,7 +664,7 @@ const GameComponent = dynamic(
           return () => {
             newGame.destroy(true);
           };
-        }, []);
+        }, [gameStarted]); // depend on gameStarted state atom to initialize a new game when start game is clicked
         useEffect(() => {
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
