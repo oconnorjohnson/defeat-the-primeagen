@@ -1,25 +1,29 @@
 "use client";
-
 import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
-import { gamePausedAtom } from "@/state/atoms";
-
+import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
+// game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
+// MainScene defines the game logic and state
+// Create is a function that creates a new instance of the MainScene class
+// Update is a function called on every frame of phaser's game loop
 const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
-        gameIsActive: boolean = true;
-        score: number;
-        scoreText!: Phaser.GameObjects.Text;
-        enemiesKilledWithLaser: number = 0;
-        enemiesKilledText!: Phaser.GameObjects.Text;
+        // mainscene class constructor
         constructor() {
           super({ key: "MainScene" });
           this.score = 0;
           this.hitEnemy = this.hitEnemy;
         }
+        // game state variables
+        gameIsActive: boolean = true;
+        score: number;
+        scoreText!: Phaser.GameObjects.Text;
+        enemiesKilledWithLaser: number = 0;
+        enemiesKilledText!: Phaser.GameObjects.Text;
         player!: Phaser.Physics.Arcade.Sprite;
         cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
         enemies!: Phaser.Physics.Arcade.Group;
@@ -41,13 +45,25 @@ const GameComponent = dynamic(
         gameDurationTimer!: Phaser.Time.TimerEvent;
         gameStartTime!: number;
         gameEndTime!: number;
+        lastLaserShotTime: number = 0;
+        laserCooldown: number = 250; // ms
+
+        // preload game assets
         preload() {
           this.load.image("player", "/player.png");
           this.load.image("enemy", "/bad.png");
           this.load.image("friendly", "/good.png");
           this.load.image("laser", "/laser.png");
         }
+        //  initialize game elements
+        initializeGameElements() {
+          this.setupLaserResetTimer();
+          this.drawLaserResetBar();
+        }
+
+        // create class method that runs on game start
         create() {
+          this.initializeGameElements();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
           this.gameDurationTimer = this.time.addEvent({
@@ -55,6 +71,7 @@ const GameComponent = dynamic(
             callback: () => {
               const currentTime = Date.now();
               const elapsedTime = currentTime - this.gameStartTime;
+              this.updateTotalGameTime(elapsedTime);
             },
             callbackScope: this,
             loop: true,
@@ -67,10 +84,12 @@ const GameComponent = dynamic(
             "player"
           );
           this.player.setCollideWorldBounds(true);
+          // create a group for player trails
           this.playerTrail = this.add.group({
             max: 0.1,
             classType: Phaser.GameObjects.Image,
           });
+          // iterate overal over the player adding a trail (simulate motion blur)
           for (let i = 0; i < 1; i++) {
             const trailSprite = this.add.image(
               this.player.x,
@@ -101,6 +120,7 @@ const GameComponent = dynamic(
             maxSize: -1,
             runChildUpdate: true,
           });
+          // iterate over spawned enemies, adjust offset which gives us a smaller hitbox than enemy's visual size and centers said hitbox
           this.enemies.children.iterate((enemy) => {
             if (enemy instanceof Phaser.Physics.Arcade.Sprite) {
               enemy.body!.setOffset(
@@ -110,14 +130,16 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          // give the kid 10 lasers to start
           this.availableLasers = 10;
+          // and give him more every 30 seconds
           this.laserResetTimer = this.time.addEvent({
             delay: 30000,
             callback: this.resetLasers,
             callbackScope: this,
             loop: true,
           });
-
+          // if we got a laser group, we better block gravity on that shit
           this.lasers.children.iterate((laser) => {
             if (
               laser instanceof Phaser.Physics.Arcade.Image &&
@@ -127,8 +149,11 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          // give the kid a laser reset bar
           this.laserResetBar = this.add.graphics();
+          // can't forget to draw that bih to the scene
           this.drawLaserResetBar();
+          // now create the 30 second timer as a delay after which we resest da boys lasers AND reset the timer
           this.laserResetTimer = this.time.addEvent({
             delay: this.laserResetDuration,
             callback: () => {
@@ -138,6 +163,8 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+          // create a physics collider for the kid and prime's spawn
+          // if the player collides with bad reqs, we set the enemy's body to invisible, stop its motion, disable its physics, add one to "enemiesHit", remove the enemy from the scene, and update the score
           this.physics.add.collider(
             this.player,
             this.enemies,
@@ -152,7 +179,8 @@ const GameComponent = dynamic(
               }
             }
           );
-
+          // create a physics collider for the lasers and the enemies
+          // if the laser collids with an enemy, we set the laser to invisible, stop its motion, disable its physics, and update the score
           this.physics.add.collider(
             this.lasers,
             this.enemies,
@@ -161,8 +189,6 @@ const GameComponent = dynamic(
                 laser instanceof Phaser.Physics.Arcade.Image &&
                 enemy instanceof Phaser.Physics.Arcade.Sprite
               ) {
-                laser.setActive(false).setVisible(false);
-                enemy.setActive(false).setVisible(false);
                 laser.setActive(false).setVisible(false);
                 enemy.setActive(false).setVisible(false);
                 enemy.body!.enable = false;
@@ -195,17 +221,16 @@ const GameComponent = dynamic(
             loop: true,
           });
         }
-        updateTotalGameTime() {
-          const currentTime = Date.now();
-          const elapsedTime = currentTime - this.gameStartTime; // Calculate elapsed time
+
+        updateTotalGameTime(elapsedTime: number) {
           const totalGameTimeElement =
             document.getElementById("total-game-time");
           if (totalGameTimeElement) {
-            totalGameTimeElement.innerText = `Total Game Time: ${(
-              elapsedTime / 1000
-            ).toFixed(2)} seconds`; // Update the text of the element
+            const elapsedTimeInSeconds = Math.round(elapsedTime / 1000);
+            totalGameTimeElement.innerText = `Total Game Time: ${elapsedTimeInSeconds} seconds`;
           }
         }
+
         updateAcceptanceRate() {
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
@@ -224,6 +249,7 @@ const GameComponent = dynamic(
             }
           }
         }
+
         updateEnemyCollisions() {
           const enemyCollisionsElement =
             document.getElementById("enemy-collisions");
@@ -231,6 +257,7 @@ const GameComponent = dynamic(
             enemyCollisionsElement.innerText = `Enemy Collisions: ${this.enemiesHit}/3`;
           }
         }
+
         stopLaserResetTimer() {
           if (this.laserResetTimer) {
             this.laserResetTimer.remove();
@@ -243,12 +270,11 @@ const GameComponent = dynamic(
           }
           this.gameIsActive = false;
           this.timeUntilNextReset = this.laserResetDuration;
-          this.drawLaserResetBar();
         }
+
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
-
           if (this.cursors.left.isDown) {
             this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
           } else if (this.cursors.right.isDown) {
@@ -273,7 +299,6 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
-
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F)
@@ -286,7 +311,7 @@ const GameComponent = dynamic(
           ) {
             this.shootLaser();
           }
-
+          this.drawLaserResetBar();
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -298,6 +323,7 @@ const GameComponent = dynamic(
             }
             return true;
           });
+          this.drawLaserResetBar();
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -320,6 +346,7 @@ const GameComponent = dynamic(
             currentTrail.setAlpha(1 - index * 0.1);
           });
         }
+
         setupColliders() {
           this.physics.add.overlap(
             this.player,
@@ -329,6 +356,7 @@ const GameComponent = dynamic(
             this
           );
         }
+
         hitPlayer(
           player: Phaser.Physics.Arcade.Sprite,
           enemy: Phaser.Physics.Arcade.Sprite
@@ -340,15 +368,27 @@ const GameComponent = dynamic(
             enemy.body.enable = false;
           }
         }
+
         drawLaserResetBar() {
+          if (!this.gameIsActive) {
+            const laserResetBar = document.getElementById("laser-reset-bar");
+            if (laserResetBar) {
+              laserResetBar.style.width = "100%";
+            }
+            return;
+          }
+          const currentTime = Date.now();
+          const timePassed = currentTime - this.lastLaserShotTime;
+          const timeLeft = this.laserResetDuration - timePassed;
+          const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
+
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
-            const barWidth =
-              (this.timeUntilNextReset / this.laserResetDuration) * 100;
-            laserResetBar.style.width = `${barWidth}%`;
+            laserResetBar.style.width = `${percentageLeft}%`;
             laserResetBar.style.backgroundColor = "#00ff00";
           }
         }
+
         updateScore() {
           const scoreElement = document.getElementById("score");
           if (scoreElement) {
@@ -371,6 +411,7 @@ const GameComponent = dynamic(
           if (enemiesKilledElement)
             enemiesKilledElement.innerText = `Enemies Killed: ${this.enemiesKilledWithLaser}`;
         }
+
         setupLaserResetTimer() {
           if (this.laserResetTimer) {
             this.laserResetTimer.remove();
@@ -384,9 +425,16 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+          this.lastLaserShotTime = Date.now();
+          this.timeUntilNextReset = this.laserResetDuration;
         }
+
         shootLaser() {
-          if (this.availableLasers > 0) {
+          const currentTime = Date.now();
+          if (
+            this.availableLasers > 0 &&
+            currentTime - this.lastLaserShotTime > this.laserCooldown
+          ) {
             let laser = this.lasers.getFirstDead(false);
             if (!laser) {
               laser = this.lasers.create(
@@ -406,17 +454,20 @@ const GameComponent = dynamic(
               laser.body.allowGravity = false;
               laser.setVelocityY(-800);
               this.availableLasers--;
+              this.lastLaserShotTime = currentTime;
             }
           } else {
             // console.log("No lasers available to fire.");
           }
         }
+
         resetLasers() {
           this.availableLasers = 10;
           this.timeUntilNextReset = this.laserResetDuration;
           this.setupLaserResetTimer();
           this.drawLaserResetBar();
         }
+
         laserHitEnemy(
           object1:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -444,17 +495,16 @@ const GameComponent = dynamic(
             enemy.body!.enable = false;
           }
         }
+
         spawnEnemy() {
           let enemy = this.enemies.getFirstDead(false);
           if (!enemy) {
-            // Create a new enemy if no inactive ones are available
             enemy = this.enemies.create(
               Phaser.Math.Between(0, this.scale.width),
               -50,
               "enemy"
             );
           } else {
-            // Properly reinitialize the enemy
             enemy.setPosition(Phaser.Math.Between(0, this.scale.width), -50);
             enemy.setActive(true).setVisible(true);
             enemy.body.enable = true;
@@ -494,6 +544,7 @@ const GameComponent = dynamic(
             this.updateAcceptanceRate();
           }
         }
+
         clearEnemyStates() {
           this.enemies.children.iterate(
             (enemy: Phaser.GameObjects.GameObject) => {
@@ -508,6 +559,7 @@ const GameComponent = dynamic(
             }
           );
         }
+
         hitEnemy(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -530,10 +582,12 @@ const GameComponent = dynamic(
                 enemy.setActive(true).setVisible(true);
               });
               if (this.enemiesHit >= 3) {
+                this.gameIsActive = false;
                 this.physics.pause();
                 this.gameEndTime = Date.now();
                 this.gameDurationTimer.remove();
-                this.updateTotalGameTime();
+                const elapsedTime = this.gameEndTime - this.gameStartTime; // Correctly calculate elapsedTime here
+                this.updateTotalGameTime(elapsedTime);
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
@@ -578,18 +632,21 @@ const GameComponent = dynamic(
                     this.setupLaserResetTimer();
                     this.drawLaserResetBar();
                     this.scene.restart();
+                    this.initializeGameElements();
                   });
               }
             }
           }
         }
       }
+
       const Game = () => {
         const gameRef = useRef<HTMLDivElement>(null);
         const [game, setGame] = useState<Phaser.Game | null>(null);
+        const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
         useEffect(() => {
-          if (game) return;
+          if (game || !gameStarted) return;
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
@@ -610,7 +667,7 @@ const GameComponent = dynamic(
           return () => {
             newGame.destroy(true);
           };
-        }, []);
+        }, [gameStarted]); // depend on gameStarted state atom to initialize a new game when start game is clicked
         useEffect(() => {
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
@@ -650,6 +707,7 @@ const GameComponent = dynamic(
             window.removeEventListener("resize", resizeGame);
           };
         }, [game]);
+
         return (
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div
@@ -671,16 +729,30 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            <div
-              ref={gameRef}
-              style={{ width: "1400px", height: "750px" }}
-            ></div>
+            {!gameStarted && (
+              <button
+                onClick={() => setGameStarted(true)}
+                style={{
+                  padding: "10px 20px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              >
+                Start Game
+              </button>
+            )}
+            {gameStarted && (
+              <div
+                ref={gameRef}
+                style={{ width: "1000px", height: "750px" }}
+              ></div>
+            )}
           </div>
         );
       };
       return Game;
     }),
-  { ssr: false }
+  { ssr: false, loading: () => <p>Loading game...</p> }
 );
 
 export default GameComponent;
