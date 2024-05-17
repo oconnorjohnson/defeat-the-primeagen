@@ -71,6 +71,7 @@ const GameComponent = dynamic(
             callback: () => {
               const currentTime = Date.now();
               const elapsedTime = currentTime - this.gameStartTime;
+              this.updateTotalGameTime(elapsedTime);
             },
             callbackScope: this,
             loop: true,
@@ -221,15 +222,12 @@ const GameComponent = dynamic(
           });
         }
 
-        updateTotalGameTime() {
-          const currentTime = Date.now();
-          const elapsedTime = currentTime - this.gameStartTime;
+        updateTotalGameTime(elapsedTime: number) {
           const totalGameTimeElement =
             document.getElementById("total-game-time");
           if (totalGameTimeElement) {
-            totalGameTimeElement.innerText = `Total Game Time: ${(
-              elapsedTime / 1000
-            ).toFixed(2)} seconds`;
+            const elapsedTimeInSeconds = Math.round(elapsedTime / 1000);
+            totalGameTimeElement.innerText = `Total Game Time: ${elapsedTimeInSeconds} seconds`;
           }
         }
 
@@ -588,7 +586,8 @@ const GameComponent = dynamic(
                 this.physics.pause();
                 this.gameEndTime = Date.now();
                 this.gameDurationTimer.remove();
-                this.updateTotalGameTime();
+                const elapsedTime = this.gameEndTime - this.gameStartTime; // Correctly calculate elapsedTime here
+                this.updateTotalGameTime(elapsedTime);
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
