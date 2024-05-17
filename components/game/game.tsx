@@ -1,5 +1,4 @@
 "use client";
-
 import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -48,6 +47,7 @@ const GameComponent = dynamic(
         gameEndTime!: number;
         lastLaserShotTime: number = 0;
         laserCooldown: number = 250; // ms
+
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -60,6 +60,7 @@ const GameComponent = dynamic(
           this.setupLaserResetTimer();
           this.drawLaserResetBar();
         }
+
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
