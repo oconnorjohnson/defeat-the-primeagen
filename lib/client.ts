@@ -1,5 +1,8 @@
-import { createClient } from 'edgedb';
+import { createClient } from "edgedb";
+import createAuth from "@edgedb/auth-nextjs/app";
 
-const client = createClient();
+export const client = createClient();
 
-export default client;
+export const auth = createAuth(client, {
+  baseUrl: "http://localhost:3000",
+});

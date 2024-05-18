@@ -1,16 +1,10 @@
 "use server";
-
-import client from "./client"
+import {client} from "@/lib/client"
+import {auth} from "./client"
 import e from "@/dbschema/edgeql-js";
 
 export async function updateGameStats() {
-
-    const users = e.select(e.User, () => ({
-        id: true,
-        name: true,
-    }));
-
-    return await users.run(client);
+    return 
 }
 
 export async function createUserIfNotExists(name: string, identityId: string) {
