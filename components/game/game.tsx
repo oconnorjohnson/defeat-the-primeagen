@@ -47,7 +47,6 @@ const GameComponent = dynamic(
         gameEndTime!: number;
         lastLaserShotTime: number = 0;
         laserCooldown: number = 250; // ms
-
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -60,7 +59,6 @@ const GameComponent = dynamic(
           this.setupLaserResetTimer();
           this.drawLaserResetBar();
         }
-
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
@@ -381,7 +379,6 @@ const GameComponent = dynamic(
           const timePassed = currentTime - this.lastLaserShotTime;
           const timeLeft = this.laserResetDuration - timePassed;
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
-
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
             laserResetBar.style.width = `${percentageLeft}%`;
@@ -617,6 +614,8 @@ const GameComponent = dynamic(
                   .setOrigin(0.5)
                   .setInteractive()
                   .on("pointerdown", () => {
+                    this.enemiesKilledWithLaser = 0;
+                    this.updateEnemiesKilled();
                     this.gameIsActive = true;
                     this.clearEnemyStates();
                     this.enemiesHit = 0;
