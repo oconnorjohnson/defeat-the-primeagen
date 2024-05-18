@@ -5,17 +5,18 @@ module default {
 
     global current_user := (
     assert_single((
-      select User { id, name }
+      select User
       filter .identity = global ext::auth::ClientTokenIdentity
     ))
   );
 
     type User {
-        required name: str;
-        required email: str;
+        required name: str { constraint exclusive };
         multi stats: Stat;
         multi achievements: Achievement;
-        required identity: ext::auth::Identity;
+        required identity: ext::auth::Identity {
+            constraint exclusive;
+    };
     }
 
     type Achievement {
@@ -26,5 +27,4 @@ module default {
         required name: str;
         required number: int32 { default := 0 }
     }
-
 }

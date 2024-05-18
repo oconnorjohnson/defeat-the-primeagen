@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { type NextRequest } from 'next/server'
+import { createUserIfNotExists } from '@/lib/actions';
 
 export async function GET(req: NextRequest) {
 
@@ -32,7 +33,6 @@ export async function GET(req: NextRequest) {
     }
 
     const edgedb = await codeExchangeResponse.json();
-    //const { auth_token } = await codeExchangeResponse.json();
 
     // add user to the database if not exists
     console.log("create user in the database if not exists");
@@ -44,7 +44,9 @@ export async function GET(req: NextRequest) {
         },
     });
     const data = await res.json();
-    console.log("github name: ", data?.name);
+    console.log("github username: ", data?.login);
+
+    createUserIfNotExists(data.login, edgedb.identity_id);
 
     return new Response(`Welcome! Got user's name: ${data.name}`, {
         // 204 was throwing an error
