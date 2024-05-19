@@ -644,6 +644,9 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+        const [width, setWidth] = useState(window.innerWidth);
+        const [height, setHeight] = useState(window.innerHeight);
+        const sideBarWidth = 200;
         useEffect(() => {
           if (game || !gameStarted) return;
           const config: Phaser.Types.Core.GameConfig = {
@@ -694,9 +697,9 @@ const GameComponent = dynamic(
         }, [isGamePaused, game]);
         useEffect(() => {
           const resizeGame = () => {
+            setWidth(window.innerWidth - sideBarWidth);
+            setHeight(window.innerHeight);
             if (gameRef.current && game) {
-              const width = window.innerWidth;
-              const height = window.innerHeight;
               game.scale.resize(width, height);
             }
           };
@@ -705,14 +708,17 @@ const GameComponent = dynamic(
           return () => {
             window.removeEventListener("resize", resizeGame);
           };
-        }, [game]);
+        }, [game, width, height]);
 
         return (
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div
+            style={{ width: `${width}px`, height: `${height}px` }}
+            className="flex flex-row"
+          >
             <div
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
-              style={{ width: "200px", padding: "10px" }}
+              style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
               <h1 id="score">Score: 0</h1>
               <h1 id="hit-rate">Hit Rate: 0%</h1>
@@ -740,12 +746,7 @@ const GameComponent = dynamic(
                 Start Game
               </button>
             )}
-            {gameStarted && (
-              <div
-                ref={gameRef}
-                style={{ width: "1000px", height: "750px" }}
-              ></div>
-            )}
+            {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
       };
