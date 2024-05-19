@@ -89,21 +89,21 @@ const GameComponent = dynamic(
           );
           this.player.setCollideWorldBounds(true);
           // create a group for player trails
-          this.playerTrail = this.add.group({
-            max: 0.1,
-            classType: Phaser.GameObjects.Image,
-          });
+          // this.playerTrail = this.add.group({
+          //   max: 0.1,
+          //   classType: Phaser.GameObjects.Image,
+          // });
           // iterate overal over the player adding a trail (simulate motion blur)
-          for (let i = 0; i < 1; i++) {
-            const trailSprite = this.add.image(
-              this.player.x,
-              this.player.y,
-              "player"
-            );
-            trailSprite.setScale(1 - i * 0.01);
-            trailSprite.setAlpha(1 - i * 0.1);
-            this.playerTrail.add(trailSprite);
-          }
+          // for (let i = 0; i < 1; i++) {
+          //   const trailSprite = this.add.image(
+          //     this.player.x,
+          //     this.player.y,
+          //     "player"
+          //   );
+          //   trailSprite.setScale(1 - i * 0.01);
+          //   trailSprite.setAlpha(1 - i * 0.1);
+          //   this.playerTrail.add(trailSprite);
+          // }
           this.physics.world.setBounds(
             0,
             0,
@@ -290,13 +290,11 @@ const GameComponent = dynamic(
           this.gameIsActive = false;
           this.timeUntilNextReset = this.laserResetDuration;
         }
+
         setupEnemySpawnEvent() {
-          // Destroy existing event if it exists
           if (this.enemySpawnEvent) {
             this.enemySpawnEvent.remove();
           }
-
-          // Create a new spawn event with the current spawn rate
           this.enemySpawnEvent = this.time.addEvent({
             delay: this.enemySpawnRate,
             callback: this.spawnEnemy,
@@ -304,6 +302,7 @@ const GameComponent = dynamic(
             loop: true,
           });
         }
+
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
@@ -340,6 +339,7 @@ const GameComponent = dynamic(
               this.lastRateDecreaseTime = time; // Reset the last decrease time
             }
           }
+
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F)
@@ -352,7 +352,9 @@ const GameComponent = dynamic(
           ) {
             this.shootLaser();
           }
+
           this.drawLaserResetBar();
+
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -364,7 +366,9 @@ const GameComponent = dynamic(
             }
             return true;
           });
+
           this.drawLaserResetBar();
+
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -373,19 +377,22 @@ const GameComponent = dynamic(
             }
             return true;
           });
+
           if (this.player.x < 0) {
             this.player.setX(this.scale.width);
           } else if (this.player.x > this.scale.width) {
             this.player.setX(0);
           }
+
           let lastPosition = { x: this.player.x, y: this.player.y };
-          this.playerTrail.getChildren().forEach((trail, index) => {
-            const currentTrail = trail as Phaser.GameObjects.Image;
-            const tempPosition = { x: currentTrail.x, y: currentTrail.y };
-            currentTrail.setPosition(lastPosition.x, lastPosition.y);
-            lastPosition = tempPosition;
-            currentTrail.setAlpha(1 - index * 0.1);
-          });
+
+          // this.playerTrail.getChildren().forEach((trail, index) => {
+          //   const currentTrail = trail as Phaser.GameObjects.Image;
+          //   const tempPosition = { x: currentTrail.x, y: currentTrail.y };
+          //   currentTrail.setPosition(lastPosition.x, lastPosition.y);
+          //   lastPosition = tempPosition;
+          //   currentTrail.setAlpha(1 - index * 0.1);
+          // });
         }
 
         setupColliders() {
@@ -621,6 +628,17 @@ const GameComponent = dynamic(
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
               });
+
+              this.tweens.add({
+                targets: player,
+                angle: 360,
+                duration: 500,
+                ease: "Cubic.easeOut",
+                onComplete: () => {
+                  player.setAngle(0);
+                },
+              });
+
               if (this.enemiesHit >= 3) {
                 this.gameIsActive = false;
                 this.physics.pause();
