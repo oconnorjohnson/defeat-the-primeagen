@@ -29,6 +29,7 @@ const GameComponent = dynamic(
         enemies!: Phaser.Physics.Arcade.Group;
         friendlies!: Phaser.Physics.Arcade.Group;
         enemySpawnEvent!: Phaser.Time.TimerEvent;
+        enemySpawnRate: number = 1000;
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
         totalFriendliesPassed: number = 0;
         friendliesCollected: number = 0;
@@ -43,10 +44,13 @@ const GameComponent = dynamic(
         laserResetDuration: number = 30000;
         timeUntilNextReset: number = 30000;
         gameDurationTimer!: Phaser.Time.TimerEvent;
+        elapsedTimeDuringPause: number = 0;
         gameStartTime!: number;
         gameEndTime!: number;
         lastLaserShotTime: number = 0;
         laserCooldown: number = 250; // ms
+        lastRateDecreaseTime: number = 0;
+        rateDecreaseInterval: number = 5000;
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -64,6 +68,8 @@ const GameComponent = dynamic(
           this.initializeGameElements();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
+          this.lastRateDecreaseTime = this.gameStartTime;
+          this.setupEnemySpawnEvent();
           this.gameDurationTimer = this.time.addEvent({
             delay: 1000,
             callback: () => {
@@ -207,7 +213,7 @@ const GameComponent = dynamic(
           });
           this.setupColliders();
           this.enemySpawnEvent = this.time.addEvent({
-            delay: 1000,
+            delay: this.enemySpawnRate,
             callback: this.spawnEnemy,
             callbackScope: this,
             loop: true,
@@ -218,6 +224,21 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+        }
+
+        pauseGameDurationTimer() {
+          if (this.gameDurationTimer) {
+            this.gameDurationTimer.paused = true;
+            this.elapsedTimeDuringPause = Date.now(); // Capture the current time when pausing
+          }
+        }
+
+        resumeGameDurationTimer() {
+          if (this.gameDurationTimer) {
+            const pausedDuration = Date.now() - this.elapsedTimeDuringPause; // Calculate the paused duration
+            this.gameStartTime += pausedDuration; // Adjust the game start time by the paused duration
+            this.gameDurationTimer.paused = false;
+          }
         }
 
         updateTotalGameTime(elapsedTime: number) {
@@ -269,7 +290,20 @@ const GameComponent = dynamic(
           this.gameIsActive = false;
           this.timeUntilNextReset = this.laserResetDuration;
         }
+        setupEnemySpawnEvent() {
+          // Destroy existing event if it exists
+          if (this.enemySpawnEvent) {
+            this.enemySpawnEvent.remove();
+          }
 
+          // Create a new spawn event with the current spawn rate
+          this.enemySpawnEvent = this.time.addEvent({
+            delay: this.enemySpawnRate,
+            callback: this.spawnEnemy,
+            callbackScope: this,
+            loop: true,
+          });
+        }
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
@@ -296,6 +330,15 @@ const GameComponent = dynamic(
             this.player.setVelocityX(1000);
           } else {
             this.player.setVelocityX(0);
+          }
+
+          if (time - this.lastRateDecreaseTime > this.rateDecreaseInterval) {
+            if (this.enemySpawnRate > 100) {
+              // minimum delay of 100 ms
+              this.enemySpawnRate -= 50; // decrease the delay by 50 ms
+              this.setupEnemySpawnEvent(); // Re-setup the spawn event with new delay
+              this.lastRateDecreaseTime = time; // Reset the last decrease time
+            }
           }
           if (
             this.input.keyboard!.checkDown(
@@ -494,6 +537,7 @@ const GameComponent = dynamic(
         }
 
         spawnEnemy() {
+          // Spawn enemy logic
           let enemy = this.enemies.getFirstDead(false);
           if (!enemy) {
             enemy = this.enemies.create(
@@ -549,7 +593,6 @@ const GameComponent = dynamic(
                 enemy.setData("isHit", false);
                 enemy.setData("inDebounce", false);
                 enemy.setActive(true).setVisible(true);
-                // adjust hit box on enemies to subtract 10 pixels from the width and height
                 enemy.body!.setSize(enemy.width - 10, enemy.height - 10, true);
               }
               return true;
@@ -583,7 +626,7 @@ const GameComponent = dynamic(
                 this.physics.pause();
                 this.gameEndTime = Date.now();
                 this.gameDurationTimer.remove();
-                const elapsedTime = this.gameEndTime - this.gameStartTime; // Correctly calculate elapsedTime here
+                const elapsedTime = this.gameEndTime - this.gameStartTime;
                 this.updateTotalGameTime(elapsedTime);
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
@@ -669,7 +712,7 @@ const GameComponent = dynamic(
           return () => {
             newGame.destroy(true);
           };
-        }, [gameStarted]); // depend on gameStarted state atom to initialize a new game when start game is clicked
+        }, [gameStarted]);
         useEffect(() => {
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
@@ -685,14 +728,17 @@ const GameComponent = dynamic(
         }, []);
         useEffect(() => {
           if (!game) return;
-          const scene = game.scene.getScene("MainScene");
+          const scene = game.scene.getScene("MainScene") as MainScene;
           if (scene) {
             if (isGamePaused) {
               game.scene.pause("MainScene");
+              scene.pauseGameDurationTimer();
             } else {
               game.scene.resume("MainScene");
+              scene.resumeGameDurationTimer();
             }
           } else {
+            // console.log("No scene found");
           }
         }, [isGamePaused, game]);
         useEffect(() => {
