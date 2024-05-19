@@ -21,7 +21,7 @@ export async function createUserIfNotExists(name: string, identityId: string) {
     // TODO: Create new user
     const insertedUser = await client.querySingle(`
     insert User { name := <str>$name,
-         identity := (insert ext::auth::Identity { id := <uuid><str>$identityId, provider := "Github"})
+         identity := (SELECT ext::auth::Identity FILTER .id = <uuid>$identityId)
          }`, {name, identityId});
     console.log("insertedUser: " + insertedUser);
     } catch (err) {
