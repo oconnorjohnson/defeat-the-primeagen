@@ -1,13 +1,12 @@
 import { createClient } from "edgedb";
-import createAuth from "@edgedb/auth-nextjs/app";
+//import createAuth from "@edgedb/auth-nextjs/app";
+
+const BASE_URL = process.env.EDGEDB_AUTH_BASE_URL;
 
 export const client = createClient({
-    host: "localhost",
-    port: 10701,
-    user: "edgedb",
     tlsSecurity: process.env.NODE_ENV === "development" ? "insecure" : undefined,
 });
 
-export const auth = createAuth(client, {
-  baseUrl: "http://localhost:3000",
-});
+// export const auth = createAuth(client, {
+//   baseUrl: BASE_URL || "",
+// });

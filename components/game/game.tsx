@@ -1,9 +1,11 @@
 "use client";
-import { updateGameStats } from "@/lib/actions";
+import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
 import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
+
+
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -644,8 +646,17 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+        const [loggedIn, setLoggedIn] = useState(false);
         useEffect(() => {
-          if (game || !gameStarted) return;
+          if (game || !gameStarted) {
+            // getUserSession().then(res=>res).catch(e=>e);
+            getUserStats().then(res=>{
+              console.log(res);
+              // TODO: display stats
+              setLoggedIn(true);
+            }).catch(e=>e);
+            return;
+           }
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
@@ -728,7 +739,7 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            {!gameStarted && (
+            {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
                 style={{
@@ -739,7 +750,7 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
-            )}
+            ) : "log in maan"}
             {gameStarted && (
               <div
                 ref={gameRef}

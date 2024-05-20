@@ -1,11 +1,37 @@
 "use server";
+import { cookies } from "next/headers";
 import {client} from "@/lib/client"
-import {auth} from "./client"
-import e from "@/dbschema/edgeql-js";
+// import {auth} from "./client"
+// import e from "@/dbschema/edgeql-js";
 
 export async function updateGameStats() {
     return 
 }
+
+export async function getUserStats() {
+    const cookieStore = cookies();
+    const authToken = cookieStore.get("edgedb-auth-token")?.value
+    if (!authToken) return undefined;
+    const user = await client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
+    select User {
+        stats: {
+          name,
+          number
+        }
+      }
+      filter .id = global current_user.id
+    `);
+    console.log(`Got user: ${user}`);
+    return user;
+}
+
+// export async function getUserSession() {
+//     const session = await auth.getSession();
+
+//     const isSignedIn = await session.isSignedIn();
+//     console.log("in get user session");
+//     console.log(isSignedIn);
+// }
 
 export async function createUserIfNotExists(name: string, identityId: string) {
 
@@ -29,23 +55,4 @@ export async function createUserIfNotExists(name: string, identityId: string) {
   }
   } 
   console.log("user found? ", user);
-    // const user = e.select(e.User, () => ({
-    //     name: true,
-    //     filter_single: e.op(name, "=", 'name'),
-    // }))
-
-    // const u = await user.run(client);
-    // console.log("found user");
-
-    // if (!u) {
-    //   console.log("inserting user");
-    //     e.insert(e.User, {
-    //         name,
-    //         identity: e.assert_exists(
-    //           e.select(e.ext.auth.Identity, () => ({
-    //             filter_single: { id: e.uuid(identity_id) },
-    //           }))
-    //         ),
-    //       });
-    // }
 }
