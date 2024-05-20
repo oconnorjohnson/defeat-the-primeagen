@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
 import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
+import ScoreCalculator from "@/components/game/ScoreCalculator";
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -51,6 +52,7 @@ const GameComponent = dynamic(
         laserCooldown: number = 250; // ms
         lastRateDecreaseTime: number = 0;
         rateDecreaseInterval: number = 5000;
+        lastLaserResetTime: number = 0;
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -66,6 +68,7 @@ const GameComponent = dynamic(
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
+          this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
           this.lastRateDecreaseTime = this.gameStartTime;
@@ -416,23 +419,23 @@ const GameComponent = dynamic(
             enemy.body.enable = false;
           }
         }
-
         drawLaserResetBar() {
           if (!this.gameIsActive) {
             const laserResetBar = document.getElementById("laser-reset-bar");
             if (laserResetBar) {
               laserResetBar.style.width = "100%";
+              laserResetBar.style.backgroundColor = "#ddd"; // Static color when game is paused or ended
             }
             return;
           }
           const currentTime = Date.now();
-          const timePassed = currentTime - this.lastLaserShotTime;
+          const timePassed = currentTime - this.lastLaserResetTime; // Use lastLaserResetTime here
           const timeLeft = this.laserResetDuration - timePassed;
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
-            laserResetBar.style.width = `${percentageLeft}%`;
-            laserResetBar.style.backgroundColor = "#00ff00";
+            laserResetBar.style.width = `${Math.max(0, percentageLeft)}%`;
+            laserResetBar.style.backgroundColor = "#00ff00"; // Dynamic color when game is active
           }
         }
 
@@ -467,13 +470,11 @@ const GameComponent = dynamic(
             delay: this.laserResetDuration,
             callback: () => {
               this.resetLasers();
-              this.drawLaserResetBar();
+              this.timeUntilNextReset = this.laserResetDuration;
             },
             callbackScope: this,
             loop: true,
           });
-          this.lastLaserShotTime = Date.now();
-          this.timeUntilNextReset = this.laserResetDuration;
         }
 
         shootLaser() {
@@ -510,8 +511,7 @@ const GameComponent = dynamic(
 
         resetLasers() {
           this.availableLasers = 10;
-          this.timeUntilNextReset = this.laserResetDuration;
-          this.setupLaserResetTimer();
+          this.lastLaserResetTime = Date.now();
           this.drawLaserResetBar();
         }
 
@@ -537,9 +537,16 @@ const GameComponent = dynamic(
               : null;
 
           if (laser && enemy) {
-            laser.setActive(false).setVisible(false);
-            enemy.setActive(false).setVisible(false);
-            enemy.body!.enable = false;
+            this.tweens.add({
+              targets: enemy,
+              angle: 360,
+              duration: 500,
+              ease: "Cubic.easeOut",
+              onComplete: () => {
+                enemy.setActive(false).setVisible(false);
+                enemy.body!.enable = false;
+              },
+            });
           }
         }
 
