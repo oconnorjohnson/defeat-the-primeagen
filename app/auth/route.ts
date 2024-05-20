@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createUserIfNotExists } from '@/lib/actions';
 
 export async function GET(req: NextRequest) {
@@ -48,11 +48,9 @@ export async function GET(req: NextRequest) {
 
     createUserIfNotExists(data.login, edgedb.identity_id);
 
-    return new Response(`Welcome! Got user's name: ${data.name}`, {
-        // 204 was throwing an error
-        status: 200,
-        headers: {
-            "Set-Cookie": `edgedb-auth-token=${edgedb.auth_token}; HttpOnly; Path=/; Secure; SameSite=Strict`,
-        },
-    });
+    const response = NextResponse.redirect(`http://localhost:3000/`);
+    response.headers.set(
+            "Set-Cookie", `edgedb-auth-token=${edgedb.auth_token}; HttpOnly; Path=/; Secure; SameSite=Strict`,
+    )
+    return response;
 };

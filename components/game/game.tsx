@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -651,8 +652,9 @@ const GameComponent = dynamic(
           if (game || !gameStarted) {
             getUserStats().then(res=>{
               console.log(res);
-              // TODO: display stats
-              setLoggedIn(true);
+              if (res) {
+                setLoggedIn(true);
+              }
             }).catch(e=>e);
             return;
            }
@@ -719,6 +721,8 @@ const GameComponent = dynamic(
 
         return (
           <div style={{ display: "flex", justifyContent: "center" }}>
+            {!gameStarted && loggedIn ? (
+
             <div
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
@@ -738,6 +742,15 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
+            ) : (
+            <div
+              id="game-ui"
+              className="text-xl bg-white text-black font-bold"
+              style={{ width: "200px", padding: "10px" }}
+            >
+              <h1>Login to see stats</h1>
+            </div>
+    )}
             {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
@@ -749,7 +762,7 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
-            ) : "log in maan"}
+            ) : <Link href="/auth/ui/signup" replace>Login</Link>}
             {gameStarted && (
               <div
                 ref={gameRef}
