@@ -649,7 +649,6 @@ const GameComponent = dynamic(
         const [loggedIn, setLoggedIn] = useState(false);
         useEffect(() => {
           if (game || !gameStarted) {
-            // getUserSession().then(res=>res).catch(e=>e);
             getUserStats().then(res=>{
               console.log(res);
               // TODO: display stats

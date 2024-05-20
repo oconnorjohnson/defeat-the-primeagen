@@ -1,5 +1,3 @@
-** insert all achievements **
-
 for achievement in {
     'deez nuts',
     'skill issues',
@@ -33,9 +31,6 @@ for achievement in {
         name := achievement,
     }
 );
-
-** insert all stats **
-
 
 for stat in {
     'score',
