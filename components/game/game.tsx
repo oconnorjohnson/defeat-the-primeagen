@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
 import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
-
-
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -32,6 +30,7 @@ const GameComponent = dynamic(
         enemies!: Phaser.Physics.Arcade.Group;
         friendlies!: Phaser.Physics.Arcade.Group;
         enemySpawnEvent!: Phaser.Time.TimerEvent;
+        enemySpawnRate: number = 1000;
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
         totalFriendliesPassed: number = 0;
         friendliesCollected: number = 0;
@@ -46,10 +45,14 @@ const GameComponent = dynamic(
         laserResetDuration: number = 30000;
         timeUntilNextReset: number = 30000;
         gameDurationTimer!: Phaser.Time.TimerEvent;
+        elapsedTimeDuringPause: number = 0;
         gameStartTime!: number;
         gameEndTime!: number;
         lastLaserShotTime: number = 0;
         laserCooldown: number = 250; // ms
+        lastRateDecreaseTime: number = 0;
+        rateDecreaseInterval: number = 5000;
+        lastLaserResetTime: number = 0;
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -65,8 +68,11 @@ const GameComponent = dynamic(
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
+          this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
+          this.lastRateDecreaseTime = this.gameStartTime;
+          this.setupEnemySpawnEvent();
           this.gameDurationTimer = this.time.addEvent({
             delay: 1000,
             callback: () => {
@@ -86,21 +92,21 @@ const GameComponent = dynamic(
           );
           this.player.setCollideWorldBounds(true);
           // create a group for player trails
-          this.playerTrail = this.add.group({
-            max: 0.1,
-            classType: Phaser.GameObjects.Image,
-          });
+          // this.playerTrail = this.add.group({
+          //   max: 0.1,
+          //   classType: Phaser.GameObjects.Image,
+          // });
           // iterate overal over the player adding a trail (simulate motion blur)
-          for (let i = 0; i < 1; i++) {
-            const trailSprite = this.add.image(
-              this.player.x,
-              this.player.y,
-              "player"
-            );
-            trailSprite.setScale(1 - i * 0.01);
-            trailSprite.setAlpha(1 - i * 0.1);
-            this.playerTrail.add(trailSprite);
-          }
+          // for (let i = 0; i < 1; i++) {
+          //   const trailSprite = this.add.image(
+          //     this.player.x,
+          //     this.player.y,
+          //     "player"
+          //   );
+          //   trailSprite.setScale(1 - i * 0.01);
+          //   trailSprite.setAlpha(1 - i * 0.1);
+          //   this.playerTrail.add(trailSprite);
+          // }
           this.physics.world.setBounds(
             0,
             0,
@@ -210,7 +216,7 @@ const GameComponent = dynamic(
           });
           this.setupColliders();
           this.enemySpawnEvent = this.time.addEvent({
-            delay: 1000,
+            delay: this.enemySpawnRate,
             callback: this.spawnEnemy,
             callbackScope: this,
             loop: true,
@@ -221,6 +227,21 @@ const GameComponent = dynamic(
             callbackScope: this,
             loop: true,
           });
+        }
+
+        pauseGameDurationTimer() {
+          if (this.gameDurationTimer) {
+            this.gameDurationTimer.paused = true;
+            this.elapsedTimeDuringPause = Date.now(); // Capture the current time when pausing
+          }
+        }
+
+        resumeGameDurationTimer() {
+          if (this.gameDurationTimer) {
+            const pausedDuration = Date.now() - this.elapsedTimeDuringPause; // Calculate the paused duration
+            this.gameStartTime += pausedDuration; // Adjust the game start time by the paused duration
+            this.gameDurationTimer.paused = false;
+          }
         }
 
         updateTotalGameTime(elapsedTime: number) {
@@ -273,6 +294,18 @@ const GameComponent = dynamic(
           this.timeUntilNextReset = this.laserResetDuration;
         }
 
+        setupEnemySpawnEvent() {
+          if (this.enemySpawnEvent) {
+            this.enemySpawnEvent.remove();
+          }
+          this.enemySpawnEvent = this.time.addEvent({
+            delay: this.enemySpawnRate,
+            callback: this.spawnEnemy,
+            callbackScope: this,
+            loop: true,
+          });
+        }
+
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
@@ -300,6 +333,16 @@ const GameComponent = dynamic(
           } else {
             this.player.setVelocityX(0);
           }
+
+          if (time - this.lastRateDecreaseTime > this.rateDecreaseInterval) {
+            if (this.enemySpawnRate > 100) {
+              // minimum delay of 100 ms
+              this.enemySpawnRate -= 50; // decrease the delay by 50 ms
+              this.setupEnemySpawnEvent(); // Re-setup the spawn event with new delay
+              this.lastRateDecreaseTime = time; // Reset the last decrease time
+            }
+          }
+
           if (
             this.input.keyboard!.checkDown(
               this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F)
@@ -312,7 +355,9 @@ const GameComponent = dynamic(
           ) {
             this.shootLaser();
           }
+
           this.drawLaserResetBar();
+
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
@@ -324,7 +369,9 @@ const GameComponent = dynamic(
             }
             return true;
           });
+
           this.drawLaserResetBar();
+
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -333,19 +380,22 @@ const GameComponent = dynamic(
             }
             return true;
           });
+
           if (this.player.x < 0) {
             this.player.setX(this.scale.width);
           } else if (this.player.x > this.scale.width) {
             this.player.setX(0);
           }
+
           let lastPosition = { x: this.player.x, y: this.player.y };
-          this.playerTrail.getChildren().forEach((trail, index) => {
-            const currentTrail = trail as Phaser.GameObjects.Image;
-            const tempPosition = { x: currentTrail.x, y: currentTrail.y };
-            currentTrail.setPosition(lastPosition.x, lastPosition.y);
-            lastPosition = tempPosition;
-            currentTrail.setAlpha(1 - index * 0.1);
-          });
+
+          // this.playerTrail.getChildren().forEach((trail, index) => {
+          //   const currentTrail = trail as Phaser.GameObjects.Image;
+          //   const tempPosition = { x: currentTrail.x, y: currentTrail.y };
+          //   currentTrail.setPosition(lastPosition.x, lastPosition.y);
+          //   lastPosition = tempPosition;
+          //   currentTrail.setAlpha(1 - index * 0.1);
+          // });
         }
 
         setupColliders() {
@@ -369,23 +419,23 @@ const GameComponent = dynamic(
             enemy.body.enable = false;
           }
         }
-
         drawLaserResetBar() {
           if (!this.gameIsActive) {
             const laserResetBar = document.getElementById("laser-reset-bar");
             if (laserResetBar) {
               laserResetBar.style.width = "100%";
+              laserResetBar.style.backgroundColor = "#ddd"; // Static color when game is paused or ended
             }
             return;
           }
           const currentTime = Date.now();
-          const timePassed = currentTime - this.lastLaserShotTime;
+          const timePassed = currentTime - this.lastLaserResetTime; // Use lastLaserResetTime here
           const timeLeft = this.laserResetDuration - timePassed;
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
           const laserResetBar = document.getElementById("laser-reset-bar");
           if (laserResetBar) {
-            laserResetBar.style.width = `${percentageLeft}%`;
-            laserResetBar.style.backgroundColor = "#00ff00";
+            laserResetBar.style.width = `${Math.max(0, percentageLeft)}%`;
+            laserResetBar.style.backgroundColor = "#00ff00"; // Dynamic color when game is active
           }
         }
 
@@ -420,13 +470,11 @@ const GameComponent = dynamic(
             delay: this.laserResetDuration,
             callback: () => {
               this.resetLasers();
-              this.drawLaserResetBar();
+              this.timeUntilNextReset = this.laserResetDuration;
             },
             callbackScope: this,
             loop: true,
           });
-          this.lastLaserShotTime = Date.now();
-          this.timeUntilNextReset = this.laserResetDuration;
         }
 
         shootLaser() {
@@ -463,8 +511,7 @@ const GameComponent = dynamic(
 
         resetLasers() {
           this.availableLasers = 10;
-          this.timeUntilNextReset = this.laserResetDuration;
-          this.setupLaserResetTimer();
+          this.lastLaserResetTime = Date.now();
           this.drawLaserResetBar();
         }
 
@@ -490,13 +537,21 @@ const GameComponent = dynamic(
               : null;
 
           if (laser && enemy) {
-            laser.setActive(false).setVisible(false);
-            enemy.setActive(false).setVisible(false);
-            enemy.body!.enable = false;
+            this.tweens.add({
+              targets: enemy,
+              angle: 360,
+              duration: 500,
+              ease: "Cubic.easeOut",
+              onComplete: () => {
+                enemy.setActive(false).setVisible(false);
+                enemy.body!.enable = false;
+              },
+            });
           }
         }
 
         spawnEnemy() {
+          // Spawn enemy logic
           let enemy = this.enemies.getFirstDead(false);
           if (!enemy) {
             enemy = this.enemies.create(
@@ -552,7 +607,6 @@ const GameComponent = dynamic(
                 enemy.setData("isHit", false);
                 enemy.setData("inDebounce", false);
                 enemy.setActive(true).setVisible(true);
-                // adjust hit box on enemies to subtract 10 pixels from the width and height
                 enemy.body!.setSize(enemy.width - 10, enemy.height - 10, true);
               }
               return true;
@@ -581,12 +635,23 @@ const GameComponent = dynamic(
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
               });
+
+              this.tweens.add({
+                targets: player,
+                angle: 360,
+                duration: 500,
+                ease: "Cubic.easeOut",
+                onComplete: () => {
+                  player.setAngle(0);
+                },
+              });
+
               if (this.enemiesHit >= 3) {
                 this.gameIsActive = false;
                 this.physics.pause();
                 this.gameEndTime = Date.now();
                 this.gameDurationTimer.remove();
-                const elapsedTime = this.gameEndTime - this.gameStartTime; // Correctly calculate elapsedTime here
+                const elapsedTime = this.gameEndTime - this.gameStartTime;
                 this.updateTotalGameTime(elapsedTime);
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
@@ -648,6 +713,9 @@ const GameComponent = dynamic(
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
         const [loggedIn, setLoggedIn] = useState(false);
+        const [width, setWidth] = useState(window.innerWidth);
+        const [height, setHeight] = useState(window.innerHeight);
+        const sideBarWidth = 200;
         useEffect(() => {
           if (game || !gameStarted) {
             getUserStats().then(res=>{
@@ -678,7 +746,7 @@ const GameComponent = dynamic(
           return () => {
             newGame.destroy(true);
           };
-        }, [gameStarted]); // depend on gameStarted state atom to initialize a new game when start game is clicked
+        }, [gameStarted]);
         useEffect(() => {
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
@@ -694,21 +762,24 @@ const GameComponent = dynamic(
         }, []);
         useEffect(() => {
           if (!game) return;
-          const scene = game.scene.getScene("MainScene");
+          const scene = game.scene.getScene("MainScene") as MainScene;
           if (scene) {
             if (isGamePaused) {
               game.scene.pause("MainScene");
+              scene.pauseGameDurationTimer();
             } else {
               game.scene.resume("MainScene");
+              scene.resumeGameDurationTimer();
             }
           } else {
+            // console.log("No scene found");
           }
         }, [isGamePaused, game]);
         useEffect(() => {
           const resizeGame = () => {
+            setWidth(window.innerWidth - sideBarWidth);
+            setHeight(window.innerHeight);
             if (gameRef.current && game) {
-              const width = window.innerWidth;
-              const height = window.innerHeight;
               game.scale.resize(width, height);
             }
           };
@@ -717,16 +788,18 @@ const GameComponent = dynamic(
           return () => {
             window.removeEventListener("resize", resizeGame);
           };
-        }, [game]);
+        }, [game, width, height]);
 
         return (
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div
+            style={{ width: `${width}px`, height: `${height}px` }}
+            className="flex flex-row"
+          >
             {!gameStarted && loggedIn ? (
-
             <div
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
-              style={{ width: "200px", padding: "10px" }}
+              style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
               <h1 id="score">Score: 0</h1>
               <h1 id="hit-rate">Hit Rate: 0%</h1>
@@ -763,12 +836,7 @@ const GameComponent = dynamic(
                 Start Game
               </button>
             ) : <Link href="/auth/ui/signup" replace>Login</Link>}
-            {gameStarted && (
-              <div
-                ref={gameRef}
-                style={{ width: "1000px", height: "750px" }}
-              ></div>
-            )}
+            {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
       };
