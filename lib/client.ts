@@ -1,19 +1,12 @@
-import { createClient, Client } from 'edgedb';
+import { createClient } from "edgedb";
+//import createAuth from "@edgedb/auth-nextjs/app";
 
+const BASE_URL = process.env.EDGEDB_AUTH_BASE_URL;
 
-let client: Client;
+export const client = createClient({
+    tlsSecurity: process.env.NODE_ENV === "development" ? "insecure" : undefined,
+});
 
-if (process.env.NODE_ENV === 'development') {
-  // TODO: TS hell
-  // @ts-ignore
-  if (!global.edgedbClient) {
-  // @ts-ignore
-    global.edgedbClient = createClient();
-  }
-  // @ts-ignore
-  client = global.edgedbClient;
-} else {
-  client = createClient();
-}
-
-export default client;
+// export const auth = createAuth(client, {
+//   baseUrl: BASE_URL || "",
+// });

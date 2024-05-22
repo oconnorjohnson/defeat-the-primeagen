@@ -1,8 +1,10 @@
 "use client";
-import { updateGameStats } from "@/lib/actions";
+import Link from "next/link";
+import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
+
 import {
   gamePausedAtom,
   gameStartedAtom,
@@ -14,6 +16,7 @@ import {
   hitRateAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
+
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -751,6 +754,9 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+
+        const [loggedIn, setLoggedIn] = useState(false);
+
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
           useAtom(enemiesKilledWithLaserAtom);
@@ -762,11 +768,21 @@ const GameComponent = dynamic(
         const [hitRateState, setHitRateState] = useAtom(hitRateAtom);
         const [acceptanceRateState, setAcceptanceRateState] =
           useAtom(acceptanceRateAtom);
+
         const [width, setWidth] = useState(window.innerWidth);
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
-          if (game || !gameStarted) return;
+
+          if (game || !gameStarted) {
+            getUserStats().then(res=>{
+              console.log(res);
+              if (res) {
+                setLoggedIn(true);
+              }
+            }).catch(e=>e);
+            return;
+           }
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
@@ -802,6 +818,10 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
+
+              // TODO: make a getter for this?
+              // await updateGameStats(score);
+
               console.log(
                 "game state atom values:",
                 scoreState,
@@ -813,6 +833,7 @@ const GameComponent = dynamic(
               );
               // update DB here
               console.log(await updateGameStats());
+
             }
           };
           window.addEventListener("keydown", handleKeyDown);
@@ -862,6 +883,7 @@ const GameComponent = dynamic(
             style={{ width: `${width}px`, height: `${height}px` }}
             className="flex flex-row"
           >
+            {!gameStarted && loggedIn ? (
             <div
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
@@ -881,7 +903,16 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            {!gameStarted && (
+            ) : (
+            <div
+              id="game-ui"
+              className="text-xl bg-white text-black font-bold"
+              style={{ width: "200px", padding: "10px" }}
+            >
+              <h1>Login to see stats</h1>
+            </div>
+    )}
+            {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
                 style={{
@@ -892,7 +923,7 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
-            )}
+            ) : <Link href="/auth/ui/signup" replace>Login</Link>}
             {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
