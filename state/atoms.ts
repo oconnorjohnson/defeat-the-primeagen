@@ -11,9 +11,11 @@ export const triggerLeftPinkyAtom = atom(false);
 export const viewportDimensionsAtom = atom({ width: 800, height: 600 });
 export const gamePausedAtom = atom(false);
 export const gameStartedAtom = atom(false);
+
+// GAME STATE ATOMS
 export const scoreAtom = atom(0);
 export const enemiesKilledWithLaserAtom = atom(0);
 export const enemiesCollidedWithAtom = atom(0);
-export const friendliesCollectedAtom = atom(0);
+export const acceptedRateAtom = atom(0);
 export const totalFriendliesPassedAtom = atom(0);
 export const hitRateAtom = atom(0);
