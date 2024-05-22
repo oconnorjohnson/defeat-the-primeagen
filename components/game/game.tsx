@@ -875,7 +875,7 @@ const GameComponent = dynamic(
           >
             <div
               id="game-ui"
-              className="text-xl bg-black text-white font-bold"
+              className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start"
               style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
               <h1 id="score">Score: 0</h1>
