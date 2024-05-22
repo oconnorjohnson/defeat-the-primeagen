@@ -3,7 +3,16 @@ import { updateGameStats } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
-import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
+import {
+  gamePausedAtom,
+  gameStartedAtom,
+  scoreAtom,
+  enemiesKilledWithLaserAtom,
+  enemiesCollidedWithAtom,
+  acceptedRateAtom,
+  totalFriendliesPassedAtom,
+  hitRateAtom,
+} from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
@@ -13,6 +22,14 @@ const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
+        // game stat callback initializers
+        onScoreChange: (score: number) => void = () => {};
+        onEnemiesKilledWithLaserChange: (
+          enemiesKilledWithLaser: number
+        ) => void = () => {};
+        onEnemiesCollidedWithChange: (count: number) => void = () => {};
+        onTotalFriendliesPassedChange: (count: number) => void = () => {};
+        onHitRateChange: (rate: number) => void = () => {};
         // mainscene class constructor
         constructor() {
           super({ key: "MainScene" });
@@ -53,6 +70,7 @@ const GameComponent = dynamic(
         lastRateDecreaseTime: number = 0;
         rateDecreaseInterval: number = 5000;
         lastLaserResetTime: number = 0;
+
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -257,7 +275,7 @@ const GameComponent = dynamic(
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-
+            this.onHitRateChange(acceptanceRate);
             const hitRateElement = document.getElementById("hit-rate");
             if (hitRateElement) {
               hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
