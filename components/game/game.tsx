@@ -9,7 +9,7 @@ import {
   scoreAtom,
   enemiesKilledWithLaserAtom,
   enemiesCollidedWithAtom,
-  acceptedRateAtom,
+  acceptanceRateAtom,
   totalFriendliesPassedAtom,
   hitRateAtom,
 } from "@/state/atoms";
@@ -30,6 +30,7 @@ const GameComponent = dynamic(
         onEnemiesCollidedWithChange: (count: number) => void = () => {};
         onTotalFriendliesPassedChange: (count: number) => void = () => {};
         onHitRateChange: (rate: number) => void = () => {};
+        onAcceptedRateChange: (rate: number) => void = () => {};
         // mainscene class constructor
         constructor() {
           super({ key: "MainScene" });
@@ -275,7 +276,7 @@ const GameComponent = dynamic(
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-            this.onHitRateChange(acceptanceRate);
+
             const hitRateElement = document.getElementById("hit-rate");
             if (hitRateElement) {
               hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
@@ -405,6 +406,11 @@ const GameComponent = dynamic(
             this.player.setX(0);
           }
 
+          if (this.totalFriendliesPassed > 0) {
+            const newHitRate =
+              (this.friendliesCollected / this.totalFriendliesPassed) * 100;
+            this.onHitRateChange(newHitRate);
+          }
           let lastPosition = { x: this.player.x, y: this.player.y };
 
           // this.playerTrail.getChildren().forEach((trail, index) => {
@@ -730,11 +736,23 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+        const [scoreState, setScoreState] = useAtom(scoreAtom);
+        const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
+          useAtom(enemiesKilledWithLaserAtom);
+        const [enemiesCollidedWithState, setEnemiesCollidedWithState] = useAtom(
+          enemiesCollidedWithAtom
+        );
+        const [totalFriendlyPassedState, setTotalFriendliesPassedState] =
+          useAtom(totalFriendliesPassedAtom);
+        const [hitRateState, setHitRateState] = useAtom(hitRateAtom);
+        const [acceptanceRateState, setAcceptanceRateState] =
+          useAtom(acceptanceRateAtom);
         const [width, setWidth] = useState(window.innerWidth);
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
           if (game || !gameStarted) return;
+
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
@@ -760,6 +778,7 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
+
               // update DB here
               console.log(await updateGameStats());
             }
