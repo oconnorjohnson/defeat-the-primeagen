@@ -23,17 +23,28 @@ const GameComponent = dynamic(
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
         // game stat callback initializers
-        onScoreChange: (score: number) => void = () => {};
-        onEnemiesKilledWithLaserChange: (
-          enemiesKilledWithLaser: number
-        ) => void = () => {};
-        onEnemiesCollidedWithChange: (count: number) => void = () => {};
-        onTotalFriendliesPassedChange: (count: number) => void = () => {};
-        onHitRateChange: (rate: number) => void = () => {};
-        onAcceptedRateChange: (rate: number) => void = () => {};
+        setScoreState: (value: number) => void = () => {};
+        setEnemiesKilledWithLaserState: (value: number) => void = () => {};
+        setEnemiesCollidedWithState: (value: number) => void = () => {};
+        setTotalFriendliesPassedState: (value: number) => void = () => {};
+        setHitRateState: (value: number) => void = () => {};
+        setAcceptanceRateState: (value: number) => void = () => {};
         // mainscene class constructor
-        constructor() {
+        constructor(
+          setScoreState: (value: number) => void,
+          setEnemiesKilledWithLaserState: (value: number) => void,
+          setEnemiesCollidedWithState: (value: number) => void,
+          setTotalFriendliesPassedState: (value: number) => void,
+          setHitRateState: (value: number) => void,
+          setAcceptanceRateState: (value: number) => void
+        ) {
           super({ key: "MainScene" });
+          this.setScoreState = setScoreState;
+          this.setEnemiesKilledWithLaserState = setEnemiesKilledWithLaserState;
+          this.setEnemiesCollidedWithState = setEnemiesCollidedWithState;
+          this.setTotalFriendliesPassedState = setTotalFriendliesPassedState;
+          this.setHitRateState = setHitRateState;
+          this.setAcceptanceRateState = setAcceptanceRateState;
           this.score = 0;
           this.hitEnemy = this.hitEnemy;
         }
@@ -409,7 +420,6 @@ const GameComponent = dynamic(
           if (this.totalFriendliesPassed > 0) {
             const newHitRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-            this.onHitRateChange(newHitRate);
           }
           let lastPosition = { x: this.player.x, y: this.player.y };
 
@@ -468,6 +478,7 @@ const GameComponent = dynamic(
           if (scoreElement) {
             scoreElement.innerText = `Score: ${this.score}`;
           }
+          this.setScoreState(this.score);
         }
 
         updateHitRate() {
@@ -477,6 +488,9 @@ const GameComponent = dynamic(
               (this.friendliesCollected / this.totalFriendliesPassed) *
               100
             ).toFixed(2)}%`;
+          this.setHitRateState(
+            (this.friendliesCollected / this.totalFriendliesPassed) * 100
+          );
         }
 
         updateEnemiesKilled() {
@@ -484,6 +498,7 @@ const GameComponent = dynamic(
             document.getElementById("enemies-killed");
           if (enemiesKilledElement)
             enemiesKilledElement.innerText = `Enemies Killed: ${this.enemiesKilledWithLaser}`;
+          this.setEnemiesKilledWithLaserState(this.enemiesKilledWithLaser);
         }
 
         setupLaserResetTimer() {
@@ -762,7 +777,16 @@ const GameComponent = dynamic(
               default: "arcade",
               arcade: { gravity: { y: 200, x: 0 } },
             },
-            scene: [MainScene],
+            scene: [
+              new MainScene(
+                setScoreState,
+                setEnemiesKilledWithLaserState,
+                setEnemiesCollidedWithState,
+                setTotalFriendliesPassedState,
+                setHitRateState,
+                setAcceptanceRateState
+              ),
+            ],
             fps: {
               target: 60,
               forceSetTimeOut: false,
@@ -778,7 +802,15 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
-
+              console.log(
+                "game state atom values:",
+                scoreState,
+                enemiesKilledWithLaserState,
+                enemiesCollidedWithState,
+                totalFriendlyPassedState,
+                hitRateState,
+                acceptanceRateState
+              );
               // update DB here
               console.log(await updateGameStats());
             }
@@ -787,7 +819,14 @@ const GameComponent = dynamic(
           return () => {
             window.removeEventListener("keydown", handleKeyDown);
           };
-        }, []);
+        }, [
+          scoreState,
+          enemiesKilledWithLaserState,
+          enemiesCollidedWithState,
+          totalFriendlyPassedState,
+          hitRateState,
+          acceptanceRateState,
+        ]);
         useEffect(() => {
           if (!game) return;
           const scene = game.scene.getScene("MainScene") as MainScene;
