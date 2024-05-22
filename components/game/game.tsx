@@ -751,8 +751,9 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
-              // update DB here
-              console.log(await updateGameStats());
+              // TODO: make a getter for this?
+              console.log(game);
+              // await updateGameStats(score);
             }
           };
           window.addEventListener("keydown", handleKeyDown);

@@ -4,8 +4,19 @@ import {client} from "@/lib/client"
 // import {auth} from "./client"
 // import e from "@/dbschema/edgeql-js";
 
-export async function updateGameStats() {
-    return 
+export async function updateGameStats(score: number) {
+    const cookieStore = cookies();
+    const authToken = cookieStore.get("edgedb-auth-token")?.value
+    if (!authToken) return undefined;
+    client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
+    update User
+        filter .identity = global ext::auth::Client_TokenIdentity
+        set {
+            stats {
+                score := <int32>$new_score
+            } 
+        }
+    `)
 }
 
 export async function getUserStats() {
