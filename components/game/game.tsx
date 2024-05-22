@@ -778,6 +778,11 @@ const GameComponent = dynamic(
             getUserStats().then(res=>{
               console.log(res);
               if (res) {
+                const resJson = JSON.parse(res);
+                setScoreState(Number(resJson.stats.score));
+                setEnemiesKilledWithLaserState(Number(resJson.stats.enemies_shot_down));
+                setEnemiesCollidedWithState(Number(resJson.stats.enemy_collisions));
+                setTotalFriendliesPassedState(Number(resJson.stats.friendly_collisions));
                 setLoggedIn(true);
               }
             }).catch(e=>e);
@@ -787,7 +792,8 @@ const GameComponent = dynamic(
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
-            height: 750,
+            // height: 750,
+            height: 700,
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -819,9 +825,6 @@ const GameComponent = dynamic(
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
 
-              // TODO: make a getter for this?
-              // await updateGameStats(score);
-
               console.log(
                 "game state atom values:",
                 scoreState,
@@ -832,7 +835,7 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(await updateGameStats());
+              console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState));
 
             }
           };
@@ -889,10 +892,10 @@ const GameComponent = dynamic(
               className="text-xl bg-white text-black font-bold"
               style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
-              <h1 id="score">Score: 0</h1>
+              <h1 id="score">Score: {scoreState}</h1>
               <h1 id="hit-rate">Hit Rate: 0%</h1>
-              <h1 id="enemies-killed">Enemies Killed: 0</h1>
-              <h1 id="enemy-collisions">Enemy Collisions: 0/3</h1>
+              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
               <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
               <div
                 id="laser-reset-bar"
@@ -908,8 +911,25 @@ const GameComponent = dynamic(
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
               style={{ width: "200px", padding: "10px" }}
-            >
+            > { loggedIn ?
+              <>
+              <h1 id="score">Score: {scoreState}</h1>
+              <h1 id="hit-rate">Hit Rate: 0%</h1>
+              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
+              <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
+              <div
+                id="laser-reset-bar"
+                style={{
+                  width: "100%",
+                  height: "20px",
+                  backgroundColor: "#ddd",
+                }}
+              ></div>
+</>
+              :
               <h1>Login to see stats</h1>
+            }
             </div>
     )}
             {!gameStarted && loggedIn ? (

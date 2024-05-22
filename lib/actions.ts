@@ -4,19 +4,27 @@ import {client} from "@/lib/client"
 // import {auth} from "./client"
 // import e from "@/dbschema/edgeql-js";
 
-export async function updateGameStats(score: number) {
+            //   console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState, hitRateState, acceptanceRateState));
+export async function updateGameStats(new_score: number, laser: number, enemy_collisions: number, friendly: number) {
     const cookieStore = cookies();
     const authToken = cookieStore.get("edgedb-auth-token")?.value
     if (!authToken) return undefined;
     client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
-    update User
-        filter .identity = global ext::auth::Client_TokenIdentity
-        set {
-            stats {
-                score := <int32>$new_score
-            } 
-        }
-    `)
+        UPDATE User
+        FILTER .id = global current_user.id
+        SET {
+            stats := (
+                UPDATE Stat
+                FILTER .id = global current_user.stats.id
+                SET {
+                    score := <int32>$new_score,
+                    enemies_shot_down := <int32>$laser,
+                    enemy_collisions := <int32>$enemy_collisions,
+                    friendly_misses := <int32>$friendly
+                }
+            )
+        };
+    `, {new_score, laser, enemy_collisions, friendly});
 }
 
 export async function getUserStats() {
@@ -25,7 +33,7 @@ export async function getUserStats() {
     if (!authToken) return undefined;
     const user = await client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
     select User {
-        stats: { enemies_collisions, enemies_missed, friendly_collisions, lasers_shot, score, total_game_time }
+        stats: { enemy_collisions, friendly_misses, friendly_collisions, enemies_shot_down, score, total_game_time }
       }
       filter .id = global current_user.id
     `);
@@ -49,10 +57,10 @@ export async function createUserIfNotExists(name: string, identityId: string) {
         new_stat := (
             INSERT default::Stat {
                 score := 0,
-                enemies_collisions := 0,
+                enemy_collisions := 0,
                 friendly_collisions := 0,
-                enemies_missed := 0,
-                lasers_shot := 0,
+                friendly_misses := 0,
+                enemies_shot_down := 0,
                 total_game_time := 0
             }
         ),
