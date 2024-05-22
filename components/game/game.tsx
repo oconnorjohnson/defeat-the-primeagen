@@ -752,7 +752,6 @@ const GameComponent = dynamic(
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
               // TODO: make a getter for this?
-              console.log(game);
               // await updateGameStats(score);
             }
           };
