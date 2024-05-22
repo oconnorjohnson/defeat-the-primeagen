@@ -51,10 +51,10 @@ module default {
 
     type Stat {
         required score: int32 { default := 0 };
-        required enemies_collisions: int32 { default := 0 };
+        required enemy_collisions: int32 { default := 0 };
         required friendly_collisions: int32 { default := 0 };
-        required enemies_missed: int32 { default := 0 };
-        required lasers_shot: int32 { default := 0 };
+        required friendly_misses: int32 { default := 0 };
+        required enemies_shot_down: int32 { default := 0 };
         required total_game_time: int64 { default := 0 };
     }
 }
