@@ -4,7 +4,19 @@ import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/action
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
-import { gamePausedAtom, gameStartedAtom } from "@/state/atoms";
+
+import {
+  gamePausedAtom,
+  gameStartedAtom,
+  scoreAtom,
+  enemiesKilledWithLaserAtom,
+  enemiesCollidedWithAtom,
+  acceptanceRateAtom,
+  totalFriendliesPassedAtom,
+  hitRateAtom,
+} from "@/state/atoms";
+import ScoreCalculator from "@/components/game/ScoreCalculator";
+
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -13,9 +25,29 @@ const GameComponent = dynamic(
   () =>
     import("phaser").then((Phaser) => {
       class MainScene extends Phaser.Scene {
+        // game stat callback initializers
+        setScoreState: (value: number) => void = () => {};
+        setEnemiesKilledWithLaserState: (value: number) => void = () => {};
+        setEnemiesCollidedWithState: (value: number) => void = () => {};
+        setTotalFriendliesPassedState: (value: number) => void = () => {};
+        setHitRateState: (value: number) => void = () => {};
+        setAcceptanceRateState: (value: number) => void = () => {};
         // mainscene class constructor
-        constructor() {
+        constructor(
+          setScoreState: (value: number) => void,
+          setEnemiesKilledWithLaserState: (value: number) => void,
+          setEnemiesCollidedWithState: (value: number) => void,
+          setTotalFriendliesPassedState: (value: number) => void,
+          setHitRateState: (value: number) => void,
+          setAcceptanceRateState: (value: number) => void
+        ) {
           super({ key: "MainScene" });
+          this.setScoreState = setScoreState;
+          this.setEnemiesKilledWithLaserState = setEnemiesKilledWithLaserState;
+          this.setEnemiesCollidedWithState = setEnemiesCollidedWithState;
+          this.setTotalFriendliesPassedState = setTotalFriendliesPassedState;
+          this.setHitRateState = setHitRateState;
+          this.setAcceptanceRateState = setAcceptanceRateState;
           this.score = 0;
           this.hitEnemy = this.hitEnemy;
         }
@@ -53,6 +85,7 @@ const GameComponent = dynamic(
         lastRateDecreaseTime: number = 0;
         rateDecreaseInterval: number = 5000;
         lastLaserResetTime: number = 0;
+
         // preload game assets
         preload() {
           this.load.image("player", "/player.png");
@@ -387,6 +420,10 @@ const GameComponent = dynamic(
             this.player.setX(0);
           }
 
+          if (this.totalFriendliesPassed > 0) {
+            const newHitRate =
+              (this.friendliesCollected / this.totalFriendliesPassed) * 100;
+          }
           let lastPosition = { x: this.player.x, y: this.player.y };
 
           // this.playerTrail.getChildren().forEach((trail, index) => {
@@ -444,6 +481,7 @@ const GameComponent = dynamic(
           if (scoreElement) {
             scoreElement.innerText = `Score: ${this.score}`;
           }
+          this.setScoreState(this.score);
         }
 
         updateHitRate() {
@@ -453,6 +491,9 @@ const GameComponent = dynamic(
               (this.friendliesCollected / this.totalFriendliesPassed) *
               100
             ).toFixed(2)}%`;
+          this.setHitRateState(
+            (this.friendliesCollected / this.totalFriendliesPassed) * 100
+          );
         }
 
         updateEnemiesKilled() {
@@ -460,6 +501,7 @@ const GameComponent = dynamic(
             document.getElementById("enemies-killed");
           if (enemiesKilledElement)
             enemiesKilledElement.innerText = `Enemies Killed: ${this.enemiesKilledWithLaser}`;
+          this.setEnemiesKilledWithLaserState(this.enemiesKilledWithLaser);
         }
 
         setupLaserResetTimer() {
@@ -712,11 +754,26 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+
         const [loggedIn, setLoggedIn] = useState(false);
+
+        const [scoreState, setScoreState] = useAtom(scoreAtom);
+        const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
+          useAtom(enemiesKilledWithLaserAtom);
+        const [enemiesCollidedWithState, setEnemiesCollidedWithState] = useAtom(
+          enemiesCollidedWithAtom
+        );
+        const [totalFriendlyPassedState, setTotalFriendliesPassedState] =
+          useAtom(totalFriendliesPassedAtom);
+        const [hitRateState, setHitRateState] = useAtom(hitRateAtom);
+        const [acceptanceRateState, setAcceptanceRateState] =
+          useAtom(acceptanceRateAtom);
+
         const [width, setWidth] = useState(window.innerWidth);
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
+
           if (game || !gameStarted) {
             getUserStats().then(res=>{
               console.log(res);
@@ -726,6 +783,7 @@ const GameComponent = dynamic(
             }).catch(e=>e);
             return;
            }
+
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             width: 1400,
@@ -735,7 +793,16 @@ const GameComponent = dynamic(
               default: "arcade",
               arcade: { gravity: { y: 200, x: 0 } },
             },
-            scene: [MainScene],
+            scene: [
+              new MainScene(
+                setScoreState,
+                setEnemiesKilledWithLaserState,
+                setEnemiesCollidedWithState,
+                setTotalFriendliesPassedState,
+                setHitRateState,
+                setAcceptanceRateState
+              ),
+            ],
             fps: {
               target: 60,
               forceSetTimeOut: false,
@@ -751,15 +818,36 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
+
               // TODO: make a getter for this?
               // await updateGameStats(score);
+
+              console.log(
+                "game state atom values:",
+                scoreState,
+                enemiesKilledWithLaserState,
+                enemiesCollidedWithState,
+                totalFriendlyPassedState,
+                hitRateState,
+                acceptanceRateState
+              );
+              // update DB here
+              console.log(await updateGameStats());
+
             }
           };
           window.addEventListener("keydown", handleKeyDown);
           return () => {
             window.removeEventListener("keydown", handleKeyDown);
           };
-        }, []);
+        }, [
+          scoreState,
+          enemiesKilledWithLaserState,
+          enemiesCollidedWithState,
+          totalFriendlyPassedState,
+          hitRateState,
+          acceptanceRateState,
+        ]);
         useEffect(() => {
           if (!game) return;
           const scene = game.scene.getScene("MainScene") as MainScene;
