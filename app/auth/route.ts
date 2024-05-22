@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     createUserIfNotExists(data.login, edgedb.identity_id);
 
-    const response = NextResponse.redirect(`http://localhost:3000/`);
+    const response = NextResponse.redirect(`https://defeat-the-primeagen.vercel.app`);
     response.headers.set(
             "Set-Cookie", `edgedb-auth-token=${edgedb.auth_token}; HttpOnly; Path=/; Secure; SameSite=Strict`,
     )
