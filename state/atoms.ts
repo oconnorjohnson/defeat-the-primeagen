@@ -16,6 +16,6 @@ export const gameStartedAtom = atom(false);
 export const scoreAtom = atom(0);
 export const enemiesKilledWithLaserAtom = atom(0);
 export const enemiesCollidedWithAtom = atom(0);
-export const acceptedRateAtom = atom(0);
+export const acceptanceRateAtom = atom(0);
 export const totalFriendliesPassedAtom = atom(0);
 export const hitRateAtom = atom(0);
