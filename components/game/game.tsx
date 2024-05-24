@@ -55,6 +55,7 @@ const GameComponent = dynamic(
         gameIsActive: boolean = true;
         score: number;
         scoreText!: Phaser.GameObjects.Text;
+        background!: Phaser.GameObjects.TileSprite;
         enemiesKilledWithLaser: number = 0;
         enemiesKilledText!: Phaser.GameObjects.Text;
         player!: Phaser.Physics.Arcade.Sprite;
@@ -92,6 +93,7 @@ const GameComponent = dynamic(
           this.load.image("enemy", "/bad.png");
           this.load.image("friendly", "/good.png");
           this.load.image("laser", "/laser.png");
+          this.load.image("background", "/gamebgtile.png");
         }
         //  initialize game elements
         initializeGameElements() {
@@ -101,6 +103,14 @@ const GameComponent = dynamic(
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
+          this.background = this.add.tileSprite(
+            0,
+            0,
+            this.scale.width,
+            this.scale.height,
+            "background"
+          );
+          this.background.setOrigin(0, 0);
           this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
@@ -342,6 +352,7 @@ const GameComponent = dynamic(
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
+          this.background.tilePositionY -= 1;
           if (this.cursors.left.isDown) {
             this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
           } else if (this.cursors.right.isDown) {
@@ -791,9 +802,10 @@ const GameComponent = dynamic(
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
-            width: 1400,
-            // height: 750,
-            height: 700,
+
+            width: 800,
+            height: 600,
+
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -889,7 +901,7 @@ const GameComponent = dynamic(
             {!gameStarted && loggedIn ? (
             <div
               id="game-ui"
-              className="text-xl bg-white text-black font-bold"
+              className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start"
               style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
               <h1 id="score">Score: {scoreState}</h1>
@@ -943,8 +955,10 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
+
             ) : <Link href="/auth/ui/signup" replace>Login</Link>}
             {gameStarted && <div ref={gameRef}></div>}
+
           </div>
         );
       };
