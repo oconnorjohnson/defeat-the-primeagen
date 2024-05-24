@@ -92,7 +92,10 @@ const GameComponent = dynamic(
 
         // preload game assets
         preload() {
-          this.load.image("player", "/player.png");
+          this.load.spritesheet("portal", "/portal.png", {
+            frameWidth: 64,
+            frameHeight: 60,
+          });
           this.load.image("enemy", "/bad.png");
           this.load.image("friendly", "/good.png");
           this.load.image("laser", "/laser.png");
@@ -134,9 +137,18 @@ const GameComponent = dynamic(
           this.player = this.physics.add.sprite(
             playerStartX,
             playerStartY,
-            "player"
+            "portal"
           );
           this.player.setCollideWorldBounds(true);
+          this.anims.create({
+            key: "portal-animate",
+            frames: this.anims.generateFrameNumbers("portal", {
+              start: 5,
+              end: 0,
+            }),
+            frameRate: 15,
+            repeat: 0,
+          });
           // create a group for player trails
           // this.playerTrail = this.add.group({
           //   max: 0.1,
@@ -229,6 +241,7 @@ const GameComponent = dynamic(
                 this.enemiesHit += 1;
                 this.enemies.remove(enemy, true, true);
                 this.hitEnemy(player, enemy);
+                this.player.play("portal-animate");
               }
             }
           );
@@ -356,13 +369,13 @@ const GameComponent = dynamic(
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
           this.background.tilePositionY -= 1;
-          if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
-          } else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(velocityPerSecond * deltaInSeconds);
-          } else {
-            this.player.setVelocityX(0);
-          }
+          // if (this.cursors.left.isDown) {
+          //   this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
+          // } else if (this.cursors.right.isDown) {
+          //   this.player.setVelocityX(velocityPerSecond * deltaInSeconds);
+          // } else {
+          //   this.player.setVelocityX(0);
+          // }
           if (
             this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
@@ -653,6 +666,7 @@ const GameComponent = dynamic(
             this.totalFriendliesPassed++;
             this.updateHitRate();
             this.updateAcceptanceRate();
+            this.player.play("portal-animate");
           }
         }
 
@@ -692,15 +706,15 @@ const GameComponent = dynamic(
                 enemy.setActive(true).setVisible(true);
               });
 
-              this.tweens.add({
-                targets: player,
-                angle: 360,
-                duration: 500,
-                ease: "Cubic.easeOut",
-                onComplete: () => {
-                  player.setAngle(0);
-                },
-              });
+              // this.tweens.add({
+              //   targets: player,
+              //   angle: 360,
+              //   duration: 500,
+              //   ease: "Cubic.easeOut",
+              //   onComplete: () => {
+              //     player.setAngle(0);
+              //   },
+              // });
 
               if (this.enemiesHit >= 3) {
                 this.gameIsActive = false;
@@ -769,7 +783,7 @@ const GameComponent = dynamic(
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
 
-        const [loggedIn, setLoggedIn] = useState(false);
+        const [loggedIn, setLoggedIn] = useState(true);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
