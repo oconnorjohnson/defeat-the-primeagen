@@ -1,8 +1,10 @@
 "use client";
-import { updateGameStats } from "@/lib/actions";
+import Link from "next/link";
+import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
+
 import {
   gamePausedAtom,
   gameStartedAtom,
@@ -14,6 +16,7 @@ import {
   hitRateAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
+
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
 // Create is a function that creates a new instance of the MainScene class
@@ -762,6 +765,9 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
+
+        const [loggedIn, setLoggedIn] = useState(false);
+
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
           useAtom(enemiesKilledWithLaserAtom);
@@ -773,16 +779,33 @@ const GameComponent = dynamic(
         const [hitRateState, setHitRateState] = useAtom(hitRateAtom);
         const [acceptanceRateState, setAcceptanceRateState] =
           useAtom(acceptanceRateAtom);
+
         const [width, setWidth] = useState(window.innerWidth);
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
-          if (game || !gameStarted) return;
+
+          if (game || !gameStarted) {
+            getUserStats().then(res=>{
+              console.log(res);
+              if (res) {
+                const resJson = JSON.parse(res);
+                setScoreState(Number(resJson.stats.score));
+                setEnemiesKilledWithLaserState(Number(resJson.stats.enemies_shot_down));
+                setEnemiesCollidedWithState(Number(resJson.stats.enemy_collisions));
+                setTotalFriendliesPassedState(Number(resJson.stats.friendly_collisions));
+                setLoggedIn(true);
+              }
+            }).catch(e=>e);
+            return;
+           }
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
+
             width: 800,
             height: 600,
+
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -813,6 +836,7 @@ const GameComponent = dynamic(
           const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
               setIsGamePaused((prev) => !prev);
+
               console.log(
                 "game state atom values:",
                 scoreState,
@@ -823,7 +847,8 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(await updateGameStats());
+              console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState));
+
             }
           };
           window.addEventListener("keydown", handleKeyDown);
@@ -873,15 +898,16 @@ const GameComponent = dynamic(
             style={{ width: `${width}px`, height: `${height}px` }}
             className="flex flex-row"
           >
+            {!gameStarted && loggedIn ? (
             <div
               id="game-ui"
               className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start"
               style={{ width: "200px", flexShrink: 0, padding: "10px" }}
             >
-              <h1 id="score">Score: 0</h1>
+              <h1 id="score">Score: {scoreState}</h1>
               <h1 id="hit-rate">Hit Rate: 0%</h1>
-              <h1 id="enemies-killed">Enemies Killed: 0</h1>
-              <h1 id="enemy-collisions">Enemy Collisions: 0/3</h1>
+              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
               <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
               <div
                 id="laser-reset-bar"
@@ -892,7 +918,33 @@ const GameComponent = dynamic(
                 }}
               ></div>
             </div>
-            {!gameStarted && (
+            ) : (
+            <div
+              id="game-ui"
+              className="text-xl bg-white text-black font-bold"
+              style={{ width: "200px", padding: "10px" }}
+            > { loggedIn ?
+              <>
+              <h1 id="score">Score: {scoreState}</h1>
+              <h1 id="hit-rate">Hit Rate: 0%</h1>
+              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
+              <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
+              <div
+                id="laser-reset-bar"
+                style={{
+                  width: "100%",
+                  height: "20px",
+                  backgroundColor: "#ddd",
+                }}
+              ></div>
+</>
+              :
+              <h1>Login to see stats</h1>
+            }
+            </div>
+    )}
+            {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
                 style={{
@@ -903,10 +955,10 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
-            )}
-            <div className="w-full h-full flex flex-col justify-center items-center">
-              {gameStarted && <div ref={gameRef}></div>}
-            </div>
+
+            ) : <Link href="/auth/ui/signup" replace>Login</Link>}
+            {gameStarted && <div ref={gameRef}></div>}
+
           </div>
         );
       };
