@@ -149,6 +149,15 @@ const GameComponent = dynamic(
             frameRate: 18,
             repeat: 0,
           });
+          this.anims.create({
+            key: "req-animate",
+            frames: this.anims.generateFrameNumbers("enemy", {
+              start: 0,
+              end: 7,
+            }),
+            frameRate: 18,
+            repeat: 0,
+          });
           // create a group for player trails
           // this.playerTrail = this.add.group({
           //   max: 0.1,
@@ -835,8 +844,8 @@ const GameComponent = dynamic(
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
 
-            width: 800,
-            height: 600,
+            width: 1000,
+            height: 800,
 
             parent: gameRef.current || undefined,
             physics: {
@@ -934,12 +943,12 @@ const GameComponent = dynamic(
         return (
           <div
             style={{ width: `${width}px`, height: `${height}px` }}
-            className="flex flex-row"
+            className="flex flex-row justify-center items-center"
           >
             {!gameStarted && loggedIn ? (
               <div
                 id="game-ui"
-                className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start"
+                className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start h-full"
                 style={{ width: "200px", flexShrink: 0, padding: "10px" }}
               >
                 <h1 id="score">Score: {scoreState}</h1>
@@ -963,7 +972,7 @@ const GameComponent = dynamic(
             ) : (
               <div
                 id="game-ui"
-                className="text-xl bg-white text-black font-bold"
+                className="text-xl bg-white text-black font-bold h-full"
                 style={{ width: "200px", padding: "10px" }}
               >
                 {" "}
@@ -1008,6 +1017,7 @@ const GameComponent = dynamic(
                 Login
               </Link>
             )}
+
             {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
