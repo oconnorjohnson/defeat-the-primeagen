@@ -146,7 +146,7 @@ const GameComponent = dynamic(
               start: 5,
               end: 0,
             }),
-            frameRate: 15,
+            frameRate: 18,
             repeat: 0,
           });
           // create a group for player trails
@@ -239,6 +239,7 @@ const GameComponent = dynamic(
                 enemy.body!.stop();
                 enemy.body!.enable = false;
                 this.enemiesHit += 1;
+                this.setEnemiesCollidedWithState(this.enemiesHit);
                 this.enemies.remove(enemy, true, true);
                 this.hitEnemy(player, enemy);
                 this.player.play("portal-animate");
@@ -425,6 +426,7 @@ const GameComponent = dynamic(
               this.updateScore();
 
               this.totalFriendliesPassed++;
+              this.setTotalFriendliesPassedState(this.totalFriendliesPassed);
               this.updateAcceptanceRate();
             }
             return true;
@@ -700,6 +702,7 @@ const GameComponent = dynamic(
               enemy.setData("isHit", true);
               enemy.setData("inDebounce", true);
               this.updateEnemyCollisions();
+
               enemy.setActive(false).setVisible(false);
               this.time.delayedCall(1001, () => {
                 enemy.setData("isHit", false);
@@ -715,7 +718,12 @@ const GameComponent = dynamic(
               //     player.setAngle(0);
               //   },
               // });
-
+              if (this.enemiesHit < 3) {
+                player.setTint(0xff0000); // Red tint
+                this.time.delayedCall(500, () => {
+                  player.clearTint(); // Clear tint after 500ms
+                });
+              }
               if (this.enemiesHit >= 3) {
                 this.gameIsActive = false;
                 this.physics.pause();
