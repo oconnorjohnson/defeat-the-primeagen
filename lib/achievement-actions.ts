@@ -73,25 +73,3 @@ return `
     `;
 
 }
-
-async function updateDbAchievements(new_score: number, laser: number, enemy_collisions: number, friendly: number) {
-    const cookieStore = cookies();
-    const authToken = cookieStore.get("edgedb-auth-token")?.value
-    if (!authToken) return undefined;
-    client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
-        UPDATE User
-        FILTER .id = global current_user.id
-        SET {
-            stats := (
-                UPDATE Stat
-                FILTER .id = global current_user.stats.id
-                SET {
-                    score := <int32>$new_score,
-                    enemies_shot_down := <int32>$laser,
-                    enemy_collisions := <int32>$enemy_collisions,
-                    friendly_misses := <int32>$friendly
-                }
-            )
-        };
-    `, {new_score, laser, enemy_collisions, friendly});
-}

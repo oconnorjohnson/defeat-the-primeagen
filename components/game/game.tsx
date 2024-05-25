@@ -16,6 +16,7 @@ import {
   hitRateAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
+import { updateAchievements, Stat } from "@/lib/achievement-actions";
 
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
@@ -837,8 +838,15 @@ const GameComponent = dynamic(
               // update DB here
               console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState));
 
-            }
+              await updateAchievements({score: scoreState,
+                enemy_collisions: enemiesCollidedWithState,
+                friendly_collisions: totalFriendlyPassedState,
+                friendly_misses: totalFriendlyPassedState,
+                enemies_shot_down: hitRateState,
+                total_game_time: acceptanceRateState} as Stat)
           };
+            }
+
           window.addEventListener("keydown", handleKeyDown);
           return () => {
             window.removeEventListener("keydown", handleKeyDown);
