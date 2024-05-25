@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import crypto from "node:crypto";
-import {Achievement, Stat, updateAchievements} from "@/lib/achievement-actions"
+import {Stat} from "@/lib/achievement-actions"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -107,4 +107,21 @@ export function evaluateStats(stats: Stat): string[] | undefined {
     if (achievementsUpdates.length === 0) return
 
     return achievementsUpdates;
+}
+
+export function updateAchievementsQuery(achievementsUpdates: string[]): string {
+return `
+        UPDATE User
+        FILTER .id = global current_user.id
+        SET {
+            achievements := (
+                UPDATE Achievement
+                FILTER .id = global current_user.achievements.id
+                SET {
+                    ${achievementsUpdates.join(",\n")}
+                }
+            )
+        };
+    `;
+
 }

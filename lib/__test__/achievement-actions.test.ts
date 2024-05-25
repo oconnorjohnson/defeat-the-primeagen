@@ -1,6 +1,6 @@
 import { expect, describe, it } from 'vitest'
-import {updateAchievementsQuery, updateAchievements, Stat} from '../achievement-actions';
-import { evaluateStats } from '../utils';
+import {updateAchievements, Stat} from '../achievement-actions';
+import {updateAchievementsQuery, evaluateStats } from '../utils';
 
 describe('output string array when given a Stat object', () => {
   it("should return an array of strings", () => {

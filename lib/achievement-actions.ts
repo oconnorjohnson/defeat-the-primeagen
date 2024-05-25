@@ -1,6 +1,8 @@
+"use server";
 import {cookies} from "next/headers";
 import {client} from "./client"
 import { evaluateStats } from "./utils";
+import { updateAchievementsQuery } from "./utils";
 
 export interface Stat {
     score: number;
@@ -54,22 +56,5 @@ export async function updateAchievements(stats: Stat) {
     if (!authToken) return undefined;
 
     client.withGlobals({"ext::auth::client_token": authToken}).querySingle(updateQuery)
-
-}
-
-export function updateAchievementsQuery(achievementsUpdates: string[]): string {
-return `
-        UPDATE User
-        FILTER .id = global current_user.id
-        SET {
-            achievements := (
-                UPDATE Achievement
-                FILTER .id = global current_user.achievements.id
-                SET {
-                    ${achievementsUpdates.join(",\n")}
-                }
-            )
-        };
-    `;
 
 }
