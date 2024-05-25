@@ -33,7 +33,10 @@ export async function getUserStats() {
     if (!authToken) return undefined;
     const user = await client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
     select User {
-        stats: { enemy_collisions, friendly_misses, friendly_collisions, enemies_shot_down, score, total_game_time }
+        stats: { enemy_collisions, friendly_misses, friendly_collisions, enemies_shot_down, score, total_game_time },
+        achievements: {
+            deez_nuts, skill_issues, brazil_mentioned, ocamel_mentioned, rust_mentioned, giga_chad, chad_stack, react_andy, tom_s_a_genius, devon, functional_programming_plus_tye_dye, hackerman, furries, squeel, falcore_mentioned, netflix_btw, arch, zig_mentioned, four_twenty, sixty_nine, real_talk, l_take, got_the_w, big_influencer_money, back_door_wang, five_dollars_a_month, in_shambles
+        }
       }
       filter .id = global current_user.id
     `);
