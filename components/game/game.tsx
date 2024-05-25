@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import {
+  getTopScores,
   getUserStats,
   updateGameStats /*getUserSession */,
 } from "@/lib/actions";
@@ -873,6 +874,15 @@ const GameComponent = dynamic(
                 }
               })
               .catch((e) => e);
+
+              getTopScores()
+              .then(res => {
+                if (res) {
+                  const resJson = JSON.parse(res);
+                  console.log(resJson);
+                }
+              })
+              .catch(error => console.error(error));
             return;
           }
 
