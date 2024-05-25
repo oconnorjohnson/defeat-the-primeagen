@@ -1,9 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  getUserStats,
-  updateGameStats /*getUserSession */,
-} from "@/lib/actions";
+import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
@@ -19,6 +16,7 @@ import {
   hitRateAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
+import { updateAchievements, Stat } from "@/lib/achievement-actions";
 
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
@@ -411,13 +409,13 @@ const GameComponent = dynamic(
           this.bg.tilePositionY -= 0.5; // Slowest
           this.stars.tilePositionY -= 1; // Medium speed
           this.meteors.tilePositionY -= 2.5; // Fastest
-          // if (this.cursors.left.isDown) {
-          //   this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
-          // } else if (this.cursors.right.isDown) {
-          //   this.player.setVelocityX(velocityPerSecond * deltaInSeconds);
-          // } else {
-          //   this.player.setVelocityX(0);
-          // }
+          if (this.cursors.left.isDown) {
+            this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
+          } else if (this.cursors.right.isDown) {
+            this.player.setVelocityX(velocityPerSecond * deltaInSeconds);
+          } else {
+            this.player.setVelocityX(0);
+          }
           if (
             this.cursors.left.isDown ||
             this.input.keyboard!.checkDown(
@@ -747,7 +745,7 @@ const GameComponent = dynamic(
               this.updateEnemyCollisions();
 
               enemy.setActive(false).setVisible(false);
-              this.time.delayedCall(1001, () => {
+              this.time.delayedCall(1000, () => {
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
               });
@@ -852,35 +850,26 @@ const GameComponent = dynamic(
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
+
           if (game || !gameStarted) {
-            getUserStats()
-              .then((res) => {
-                console.log(res);
-                if (res) {
-                  const resJson = JSON.parse(res);
-                  setScoreState(Number(resJson.stats.score));
-                  setEnemiesKilledWithLaserState(
-                    Number(resJson.stats.enemies_shot_down)
-                  );
-                  setEnemiesCollidedWithState(
-                    Number(resJson.stats.enemy_collisions)
-                  );
-                  setTotalFriendliesPassedState(
-                    Number(resJson.stats.friendly_collisions)
-                  );
-                  setLoggedIn(true);
-                }
-              })
-              .catch((e) => e);
+            getUserStats().then(res=>{
+              console.log(res);
+              if (res) {
+                const resJson = JSON.parse(res);
+                setScoreState(Number(resJson.stats.score));
+                setEnemiesKilledWithLaserState(Number(resJson.stats.enemies_shot_down));
+                setEnemiesCollidedWithState(Number(resJson.stats.enemy_collisions));
+                setTotalFriendliesPassedState(Number(resJson.stats.friendly_collisions));
+                setLoggedIn(true);
+              }
+            }).catch(e=>e);
             return;
-          }
+           }
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
-
             width: 1050,
             height: 800,
-
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -922,16 +911,17 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(
-                await updateGameStats(
-                  scoreState,
-                  enemiesKilledWithLaserState,
-                  enemiesCollidedWithState,
-                  totalFriendlyPassedState
-                )
-              );
-            }
+              console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState));
+
+              await updateAchievements({score: scoreState,
+                enemy_collisions: enemiesCollidedWithState,
+                friendly_collisions: totalFriendlyPassedState,
+                friendly_misses: totalFriendlyPassedState,
+                enemies_shot_down: hitRateState,
+                total_game_time: acceptanceRateState} as Stat)
           };
+            }
+
           window.addEventListener("keydown", handleKeyDown);
           return () => {
             window.removeEventListener("keydown", handleKeyDown);
@@ -980,6 +970,16 @@ const GameComponent = dynamic(
             className="flex flex-row justify-center items-center"
           >
             {!gameStarted && loggedIn ? (
+            <div
+              id="game-ui"
+              className="text-xl bg-white text-black font-bold"
+              style={{ width: "200px", flexShrink: 0, padding: "10px" }}
+            >
+              <h1 id="score">Score: {scoreState}</h1>
+              <h1 id="hit-rate">Hit Rate: 0%</h1>
+              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
+              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
+              <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
               <div
                 id="game-ui"
                 className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start h-full"
@@ -1052,7 +1052,6 @@ const GameComponent = dynamic(
                 Login
               </Link>
             )}
-
             {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
