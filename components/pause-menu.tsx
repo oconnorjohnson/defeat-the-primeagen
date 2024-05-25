@@ -11,8 +11,8 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 
 export default function PauseMenu() {
-  //   const [isGamePaused] = useAtom(gamePausedAtom);
-  //   if (!isGamePaused) return null;
+  const [isGamePaused] = useAtom(gamePausedAtom);
+  if (!isGamePaused) return null;
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
@@ -143,7 +143,7 @@ export default function PauseMenu() {
               <span className="text-2xl pt-4">Defeat the Primeagen</span>
               Application
             </div>
-            <div className="flex flex-row justify-between items-center h-[50px] border-t-2 border-b-2 border-zinc-300 py-2 px-4">
+            <div className="flex flex-row justify-between items-center h-[50px] border-t-2 border-b-2 border-zinc-300 text-zinc-500 py-2 px-4">
               <div>Location</div>
               <div>{"C:Windows|System32DefeatThePrimeagen\v1.0"}</div>
             </div>
@@ -166,7 +166,8 @@ export default function PauseMenu() {
                 className="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-400 transition-all"
                 type="button"
               >
-                Save {"&"} Exit
+                I have a date with a real girl, you wouldn't understand <br />
+                {"("}Save {"&"} Exit{")"}
               </button>
             </div>
           </div>

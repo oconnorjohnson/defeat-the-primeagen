@@ -834,7 +834,7 @@ const GameComponent = dynamic(
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
 
-        const [loggedIn, setLoggedIn] = useState(true);
+        const [loggedIn, setLoggedIn] = useState(false);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
