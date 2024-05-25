@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@edgedb/auth-nextjs':
+    specifier: ^0.3.1
+    version: 0.3.1(edgedb@1.5.6)(next@14.2.3)(react@18.3.1)
   '@radix-ui/react-aspect-ratio':
     specifier: ^1.0.3
     version: 1.0.3(@types/react-dom@18.3.0)(@types/react@18.3.1)(react-dom@18.3.1)(react@18.3.1)
@@ -97,6 +100,28 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.1
+
+  /@edgedb/auth-core@0.2.1(edgedb@1.5.6):
+    resolution: {integrity: sha512-denOSLG7vefeb5hoSPxGu8NV1EeDO1XAAli17nhl8l4nQUVjnrSIE/5keTXib6DUel3nZSJG+yLmYkIrOFJOBQ==}
+    peerDependencies:
+      edgedb: ^1.3.6
+    dependencies:
+      edgedb: 1.5.6
+      jwt-decode: 3.1.2
+    dev: false
+
+  /@edgedb/auth-nextjs@0.3.1(edgedb@1.5.6)(next@14.2.3)(react@18.3.1):
+    resolution: {integrity: sha512-FeAvV4G6LO8MFKPz2ji0egDbC+io9TBUlLKlbtlHB2qomyrxOpqwBhk2plfkG1iBEg9BAdBa3WvX1r3EE8dNow==}
+    peerDependencies:
+      edgedb: ^1.3.6
+      next: '>=13.5.6 <15.0.0'
+      react: ^18.2.0
+    dependencies:
+      '@edgedb/auth-core': 0.2.1(edgedb@1.5.6)
+      edgedb: 1.5.6
+      next: 14.2.3(react-dom@18.3.1)(react@18.3.1)
+      react: 18.3.1
+    dev: false
 
   /@edgedb/generate@0.5.3(edgedb@1.5.6):
     resolution: {integrity: sha512-cOcCPmnmtCSD1ZwwmVZ/iIkwvtQk0loHrQIAMmFOUyfxN+nm3kff7MnmF44igPDc7D7aIwgpRo95qZqvIG+xgA==}
@@ -2243,6 +2268,10 @@ packages:
       object.assign: 4.1.5
       object.values: 1.2.0
     dev: true
+
+  /jwt-decode@3.1.2:
+    resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}

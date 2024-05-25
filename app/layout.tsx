@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Love_Light } from "next/font/google";
 import "./globals.css";
-import { AuroraHero } from "@/components/stars";
-import { RiveServers, RiveHands } from "@/components/rive-assets";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -22,8 +20,6 @@ export default function RootLayout({
         style={{ display: "flex", flexDirection: "column", height: "100vh" }}
       >
         {children}
-        {/* <RiveServers />
-        <RiveHands /> */}
       </body>
     </html>
   );
