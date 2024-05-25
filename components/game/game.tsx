@@ -410,7 +410,7 @@ const GameComponent = dynamic(
           const deltaInSeconds = delta / 1000;
           this.bg.tilePositionY -= 0.5; // Slowest
           this.stars.tilePositionY -= 1; // Medium speed
-          this.meteors.tilePositionY -= 1.5; // Fastest
+          this.meteors.tilePositionY -= 2.5; // Fastest
           // if (this.cursors.left.isDown) {
           //   this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
           // } else if (this.cursors.right.isDown) {

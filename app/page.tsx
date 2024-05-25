@@ -14,7 +14,7 @@ export default function Root() {
       />
       <div className="absolute top-0 left-0 w-full h-full z-10">
         <PauseMenu />
-        <Game />
+        {/* <Game /> */}
       </div>
     </div>
   );
