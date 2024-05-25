@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
-import { getUserStats, updateGameStats, /*getUserSession */ } from "@/lib/actions";
+import {
+  getUserStats,
+  updateGameStats /*getUserSession */,
+} from "@/lib/actions";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAtom } from "jotai";
@@ -850,21 +853,28 @@ const GameComponent = dynamic(
         const [height, setHeight] = useState(window.innerHeight);
         const sideBarWidth = 200;
         useEffect(() => {
-
           if (game || !gameStarted) {
-            getUserStats().then(res=>{
-              console.log(res);
-              if (res) {
-                const resJson = JSON.parse(res);
-                setScoreState(Number(resJson.stats.score));
-                setEnemiesKilledWithLaserState(Number(resJson.stats.enemies_shot_down));
-                setEnemiesCollidedWithState(Number(resJson.stats.enemy_collisions));
-                setTotalFriendliesPassedState(Number(resJson.stats.friendly_collisions));
-                setLoggedIn(true);
-              }
-            }).catch(e=>e);
+            getUserStats()
+              .then((res) => {
+                console.log(res);
+                if (res) {
+                  const resJson = JSON.parse(res);
+                  setScoreState(Number(resJson.stats.score));
+                  setEnemiesKilledWithLaserState(
+                    Number(resJson.stats.enemies_shot_down)
+                  );
+                  setEnemiesCollidedWithState(
+                    Number(resJson.stats.enemy_collisions)
+                  );
+                  setTotalFriendliesPassedState(
+                    Number(resJson.stats.friendly_collisions)
+                  );
+                  setLoggedIn(true);
+                }
+              })
+              .catch((e) => e);
             return;
-           }
+          }
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
@@ -911,16 +921,25 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState));
+              console.log(
+                await updateGameStats(
+                  scoreState,
+                  enemiesKilledWithLaserState,
+                  enemiesCollidedWithState,
+                  totalFriendlyPassedState
+                )
+              );
 
-              await updateAchievements({score: scoreState,
+              await updateAchievements({
+                score: scoreState,
                 enemy_collisions: enemiesCollidedWithState,
                 friendly_collisions: totalFriendlyPassedState,
                 friendly_misses: totalFriendlyPassedState,
                 enemies_shot_down: hitRateState,
-                total_game_time: acceptanceRateState} as Stat)
-          };
+                total_game_time: acceptanceRateState,
+              } as Stat);
             }
+          };
 
           window.addEventListener("keydown", handleKeyDown);
           return () => {
@@ -969,7 +988,7 @@ const GameComponent = dynamic(
             style={{ width: `${width}px`, height: `${height}px` }}
             className="flex flex-row justify-center items-center"
           >
-            {!gameStarted && loggedIn ? (
+            {/* {!gameStarted && loggedIn ? (
             <div
               id="game-ui"
               className="text-xl bg-white text-black font-bold"
@@ -1004,6 +1023,7 @@ const GameComponent = dynamic(
                 ></div>
               </div>
             ) : (
+             
               // <div
               //   id="game-ui"
               //   className="text-xl bg-white text-black font-bold h-full"
@@ -1034,8 +1054,8 @@ const GameComponent = dynamic(
               //     <h1>Login to see stats</h1>
               //   )}
               // </div>
-              <></>
-            )}
+              <div></div>
+            )} */}
             {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
