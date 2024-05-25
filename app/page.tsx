@@ -1,5 +1,6 @@
 import Game from "@/components/game/game";
 import Image from "next/image";
+import PauseMenu from "@/components/pause-menu";
 import "@/app/globals.css";
 export default function Root() {
   return (
@@ -12,6 +13,7 @@ export default function Root() {
         priority
       />
       <div className="absolute top-0 left-0 w-full h-full z-10">
+        <PauseMenu />
         <Game />
       </div>
     </div>

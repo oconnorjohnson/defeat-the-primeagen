@@ -1004,36 +1004,37 @@ const GameComponent = dynamic(
                 ></div>
               </div>
             ) : (
-              <div
-                id="game-ui"
-                className="text-xl bg-white text-black font-bold h-full"
-                style={{ width: "200px", padding: "10px" }}
-              >
-                {" "}
-                {loggedIn ? (
-                  <>
-                    <h1 id="score">Score: {scoreState}</h1>
-                    <h1 id="hit-rate">Hit Rate: 0%</h1>
-                    <h1 id="enemies-killed">
-                      Enemies Killed: {enemiesKilledWithLaserState}
-                    </h1>
-                    <h1 id="enemy-collisions">
-                      Enemy Collisions: {enemiesCollidedWithState}/3
-                    </h1>
-                    <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
-                    <div
-                      id="laser-reset-bar"
-                      style={{
-                        width: "100%",
-                        height: "20px",
-                        backgroundColor: "#ddd",
-                      }}
-                    ></div>
-                  </>
-                ) : (
-                  <h1>Login to see stats</h1>
-                )}
-              </div>
+              // <div
+              //   id="game-ui"
+              //   className="text-xl bg-white text-black font-bold h-full"
+              //   style={{ width: "200px", padding: "10px" }}
+              // >
+              //   {" "}
+              //   {loggedIn ? (
+              //     <>
+              //       <h1 id="score">Score: {scoreState}</h1>
+              //       <h1 id="hit-rate">Hit Rate: 0%</h1>
+              //       <h1 id="enemies-killed">
+              //         Enemies Killed: {enemiesKilledWithLaserState}
+              //       </h1>
+              //       <h1 id="enemy-collisions">
+              //         Enemy Collisions: {enemiesCollidedWithState}/3
+              //       </h1>
+              //       <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
+              //       <div
+              //         id="laser-reset-bar"
+              //         style={{
+              //           width: "100%",
+              //           height: "20px",
+              //           backgroundColor: "#ddd",
+              //         }}
+              //       ></div>
+              //     </>
+              //   ) : (
+              //     <h1>Login to see stats</h1>
+              //   )}
+              // </div>
+              <></>
             )}
             {!gameStarted && loggedIn ? (
               <button
