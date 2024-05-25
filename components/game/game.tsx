@@ -73,6 +73,7 @@ const GameComponent = dynamic(
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
         totalFriendliesPassed: number = 0;
         friendliesCollected: number = 0;
+        backgroundMusic!: Phaser.Sound.BaseSound;
         enemiesHit: number = 0;
         acceptanceRateText!: Phaser.GameObjects.Text;
         enemiesHitText!: Phaser.GameObjects.Text;
@@ -112,6 +113,7 @@ const GameComponent = dynamic(
           this.load.image("BG", "/BG.png");
           this.load.image("Meteors", "/Meteors.png");
           this.load.image("Stars", "/Stars.png");
+          this.load.audio("soundtrack", "/soundtrack.mp3");
         }
         //  initialize game elements
         initializeGameElements() {
@@ -183,6 +185,8 @@ const GameComponent = dynamic(
             frameRate: 5,
             repeat: -1,
           });
+          this.backgroundMusic = this.sound.add("soundtrack", { loop: true });
+          this.backgroundMusic.play();
 
           // create a group for player trails
           // this.playerTrail = this.add.group({
@@ -820,6 +824,7 @@ const GameComponent = dynamic(
                     this.timeUntilNextReset = this.laserResetDuration;
                     this.setupLaserResetTimer();
                     this.drawLaserResetBar();
+                    this.backgroundMusic.stop();
                     this.scene.restart();
                     this.initializeGameElements();
                   });
@@ -835,7 +840,7 @@ const GameComponent = dynamic(
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
 
-        const [loggedIn, setLoggedIn] = useState(false);
+        const [loggedIn, setLoggedIn] = useState(true);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
