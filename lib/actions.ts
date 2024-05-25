@@ -1,10 +1,13 @@
 "use server";
 import { cookies } from "next/headers";
 import {client} from "@/lib/client"
-// import {auth} from "./client"
-// import e from "@/dbschema/edgeql-js";
 
-            //   console.log(await updateGameStats(scoreState, enemiesKilledWithLaserState, enemiesCollidedWithState, totalFriendlyPassedState, hitRateState, acceptanceRateState));
+
+// I appologize for what has happend in this file.
+
+/* Update the current user's score in the db
+*
+*/
 export async function updateGameStats(new_score: number, laser: number, enemy_collisions: number, friendly: number) {
     const cookieStore = cookies();
     const authToken = cookieStore.get("edgedb-auth-token")?.value
@@ -27,6 +30,9 @@ export async function updateGameStats(new_score: number, laser: number, enemy_co
     `, {new_score, laser, enemy_collisions, friendly});
 }
 
+/* Get the current user's stats and achiements
+*
+*/
 export async function getUserStats() {
     const cookieStore = cookies();
     const authToken = cookieStore.get("edgedb-auth-token")?.value
@@ -44,6 +50,9 @@ export async function getUserStats() {
     return user;
 }
 
+/* Create a new user if they are not in the DB
+ *
+*/
 export async function createUserIfNotExists(name: string, identityId: string) {
 
     console.log(name, identityId);
@@ -111,4 +120,23 @@ export async function createUserIfNotExists(name: string, identityId: string) {
   }
   } 
   console.log("user found? ", user);
+}
+
+/* Get users based on top scores
+*
+*/
+export async function getTopScores() {
+    const cookieStore = cookies();
+    const authToken = cookieStore.get("edgedb-auth-token")?.value
+    if (!authToken) return undefined;
+    const scores = await client.withGlobals({"ext::auth::client_token": authToken}).querySingleJSON(`
+    select User {
+        name,
+        stats: { score }
+      }
+    order by .stats.score desc
+    limit 5
+    `);
+    console.log(`Got scores: ${scores}`);
+    return scores;
 }
