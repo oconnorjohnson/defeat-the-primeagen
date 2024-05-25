@@ -122,7 +122,7 @@ export default function PauseMenu() {
               <GoSearch className="h-6 w-6 pt-1" />
               <div className="pt-1.5 pl-2">Defeat the Primeagen</div>
               <div className="pt-2 pl-2 text-zinc-500 text-sm">
-                - See more web results
+                {"-"} See more web results
               </div>
             </div>
 
@@ -166,7 +166,8 @@ export default function PauseMenu() {
                 className="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-400 transition-all"
                 type="button"
               >
-                I have a date with a real girl, you wouldn't understand <br />
+                I have a date with a real girl, you wouldn&apos;t understand{" "}
+                <br />
                 {"("}Save {"&"} Exit{")"}
               </button>
             </div>
