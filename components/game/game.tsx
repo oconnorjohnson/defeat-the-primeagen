@@ -56,6 +56,9 @@ const GameComponent = dynamic(
         gameIsActive: boolean = true;
         score: number;
         scoreText!: Phaser.GameObjects.Text;
+        bg!: Phaser.GameObjects.TileSprite;
+        stars!: Phaser.GameObjects.TileSprite;
+        meteors!: Phaser.GameObjects.TileSprite;
         enemiesKilledWithLaser: number = 0;
         enemiesKilledText!: Phaser.GameObjects.Text;
         player!: Phaser.Physics.Arcade.Sprite;
@@ -89,10 +92,23 @@ const GameComponent = dynamic(
 
         // preload game assets
         preload() {
-          this.load.image("player", "/player.png");
-          this.load.image("enemy", "/bad.png");
-          this.load.image("friendly", "/good.png");
+          this.load.spritesheet("portal", "/portal.png", {
+            frameWidth: 64,
+            frameHeight: 60,
+          });
+          this.load.spritesheet("enemy", "/badcode.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+          });
+          this.load.spritesheet("friendly", "/goodcode.png", {
+            frameWidth: 50,
+            frameHeight: 50,
+          });
           this.load.image("laser", "/laser.png");
+          this.load.image("background", "/gamebgtile.png");
+          this.load.image("BG", "/BG.png");
+          this.load.image("Meteors", "/Meteors.png");
+          this.load.image("Stars", "/Stars.png");
         }
         //  initialize game elements
         initializeGameElements() {
@@ -102,6 +118,18 @@ const GameComponent = dynamic(
         // create class method that runs on game start
         create() {
           this.initializeGameElements();
+          this.bg = this.add.tileSprite(0, 0, 1080, 1920, "BG").setOrigin(0, 0);
+          this.stars = this.add
+            .tileSprite(0, 0, 1080, 1920, "Stars")
+            .setOrigin(0, 0);
+          this.meteors = this.add
+            .tileSprite(0, 0, 1080, 1920, "Meteors")
+            .setOrigin(0, 0);
+
+          // Set depth for layering
+          this.bg.setDepth(-3);
+          this.stars.setDepth(-2);
+          this.meteors.setDepth(-1);
           this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
@@ -122,9 +150,37 @@ const GameComponent = dynamic(
           this.player = this.physics.add.sprite(
             playerStartX,
             playerStartY,
-            "player"
+            "portal"
           );
           this.player.setCollideWorldBounds(true);
+          this.anims.create({
+            key: "portal-animate",
+            frames: this.anims.generateFrameNumbers("portal", {
+              start: 5,
+              end: 0,
+            }),
+            frameRate: 18,
+            repeat: 0,
+          });
+          this.anims.create({
+            key: "enemy-loop",
+            frames: this.anims.generateFrameNumbers("enemy", {
+              start: 0,
+              end: 11,
+            }),
+            frameRate: 5,
+            repeat: -1,
+          });
+          this.anims.create({
+            key: "friendly-loop",
+            frames: this.anims.generateFrameNumbers("friendly", {
+              start: 0,
+              end: 11,
+            }),
+            frameRate: 5,
+            repeat: -1,
+          });
+
           // create a group for player trails
           // this.playerTrail = this.add.group({
           //   max: 0.1,
@@ -168,10 +224,11 @@ const GameComponent = dynamic(
                 (enemy.width - (enemy.width - 10)) / 2,
                 (enemy.height - (enemy.height - 10)) / 2
               );
+              enemy.play("enemy-loop");
             }
             return true;
           });
-          // give the kid 10 lasers to start
+
           this.availableLasers = 10;
           // and give him more every 30 seconds
           this.laserResetTimer = this.time.addEvent({
@@ -215,8 +272,10 @@ const GameComponent = dynamic(
                 enemy.body!.stop();
                 enemy.body!.enable = false;
                 this.enemiesHit += 1;
+                this.setEnemiesCollidedWithState(this.enemiesHit);
                 this.enemies.remove(enemy, true, true);
                 this.hitEnemy(player, enemy);
+                this.player.play("portal-animate");
               }
             }
           );
@@ -248,6 +307,10 @@ const GameComponent = dynamic(
             repeat: 0,
             setXY: { x: 100, y: 100, stepX: 70 },
           });
+          const firstFriendly = this.friendlies.getFirstAlive();
+          if (firstFriendly) {
+            firstFriendly.play("friendly-loop");
+          }
           this.setupColliders();
           this.enemySpawnEvent = this.time.addEvent({
             delay: this.enemySpawnRate,
@@ -343,6 +406,9 @@ const GameComponent = dynamic(
         update(time: number, delta: number) {
           const velocityPerSecond = 500;
           const deltaInSeconds = delta / 1000;
+          this.bg.tilePositionY -= 0.5; // Slowest
+          this.stars.tilePositionY -= 1; // Medium speed
+          this.meteors.tilePositionY -= 2.5; // Fastest
           if (this.cursors.left.isDown) {
             this.player.setVelocityX(-velocityPerSecond * deltaInSeconds);
           } else if (this.cursors.right.isDown) {
@@ -399,6 +465,7 @@ const GameComponent = dynamic(
               this.updateScore();
 
               this.totalFriendliesPassed++;
+              this.setTotalFriendliesPassedState(this.totalFriendliesPassed);
               this.updateAcceptanceRate();
             }
             return true;
@@ -608,6 +675,7 @@ const GameComponent = dynamic(
             enemy.body.enable = true;
           }
           enemy.setVelocity(0, 50);
+          enemy.play("enemy-loop");
         }
 
         spawnFriendly() {
@@ -618,6 +686,7 @@ const GameComponent = dynamic(
             "friendly"
           );
           newFriendly.setVelocity(0, 200);
+          newFriendly.play("friendly-loop");
         }
 
         collectFriendly(
@@ -640,6 +709,7 @@ const GameComponent = dynamic(
             this.totalFriendliesPassed++;
             this.updateHitRate();
             this.updateAcceptanceRate();
+            this.player.play("portal-animate");
           }
         }
 
@@ -673,22 +743,28 @@ const GameComponent = dynamic(
               enemy.setData("isHit", true);
               enemy.setData("inDebounce", true);
               this.updateEnemyCollisions();
+
               enemy.setActive(false).setVisible(false);
               this.time.delayedCall(1000, () => {
                 enemy.setData("isHit", false);
                 enemy.setActive(true).setVisible(true);
               });
 
-              this.tweens.add({
-                targets: player,
-                angle: 360,
-                duration: 500,
-                ease: "Cubic.easeOut",
-                onComplete: () => {
-                  player.setAngle(0);
-                },
-              });
-
+              // this.tweens.add({
+              //   targets: player,
+              //   angle: 360,
+              //   duration: 500,
+              //   ease: "Cubic.easeOut",
+              //   onComplete: () => {
+              //     player.setAngle(0);
+              //   },
+              // });
+              if (this.enemiesHit < 3) {
+                player.setTint(0xff0000); // Red tint
+                this.time.delayedCall(500, () => {
+                  player.clearTint(); // Clear tint after 500ms
+                });
+              }
               if (this.enemiesHit >= 3) {
                 this.gameIsActive = false;
                 this.physics.pause();
@@ -792,9 +868,8 @@ const GameComponent = dynamic(
 
           const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
-            width: 1400,
-            // height: 750,
-            height: 700,
+            width: 1050,
+            height: 800,
             parent: gameRef.current || undefined,
             physics: {
               default: "arcade",
@@ -892,7 +967,7 @@ const GameComponent = dynamic(
         return (
           <div
             style={{ width: `${width}px`, height: `${height}px` }}
-            className="flex flex-row"
+            className="flex flex-row justify-center items-center"
           >
             {!gameStarted && loggedIn ? (
             <div
@@ -906,40 +981,61 @@ const GameComponent = dynamic(
               <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
               <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
               <div
-                id="laser-reset-bar"
-                style={{
-                  width: "100%",
-                  height: "20px",
-                  backgroundColor: "#ddd",
-                }}
-              ></div>
-            </div>
+                id="game-ui"
+                className="text-xl bg-black text-white font-bold flex flex-col justify-center items-start h-full"
+                style={{ width: "200px", flexShrink: 0, padding: "10px" }}
+              >
+                <h1 id="score">Score: {scoreState}</h1>
+                <h1 id="hit-rate">Hit Rate: 0%</h1>
+                <h1 id="enemies-killed">
+                  Enemies Killed: {enemiesKilledWithLaserState}
+                </h1>
+                <h1 id="enemy-collisions">
+                  Enemy Collisions: {enemiesCollidedWithState}/3
+                </h1>
+                <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
+                <div
+                  id="laser-reset-bar"
+                  style={{
+                    width: "100%",
+                    height: "20px",
+                    backgroundColor: "#ddd",
+                  }}
+                ></div>
+              </div>
             ) : (
-            <div
-              id="game-ui"
-              className="text-xl bg-white text-black font-bold"
-              style={{ width: "200px", padding: "10px" }}
-            > { loggedIn ?
-              <>
-              <h1 id="score">Score: {scoreState}</h1>
-              <h1 id="hit-rate">Hit Rate: 0%</h1>
-              <h1 id="enemies-killed">Enemies Killed: {enemiesKilledWithLaserState}</h1>
-              <h1 id="enemy-collisions">Enemy Collisions: {enemiesCollidedWithState}/3</h1>
-              <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
-              <div
-                id="laser-reset-bar"
-                style={{
-                  width: "100%",
-                  height: "20px",
-                  backgroundColor: "#ddd",
-                }}
-              ></div>
-</>
-              :
-              <h1>Login to see stats</h1>
-            }
-            </div>
-    )}
+              // <div
+              //   id="game-ui"
+              //   className="text-xl bg-white text-black font-bold h-full"
+              //   style={{ width: "200px", padding: "10px" }}
+              // >
+              //   {" "}
+              //   {loggedIn ? (
+              //     <>
+              //       <h1 id="score">Score: {scoreState}</h1>
+              //       <h1 id="hit-rate">Hit Rate: 0%</h1>
+              //       <h1 id="enemies-killed">
+              //         Enemies Killed: {enemiesKilledWithLaserState}
+              //       </h1>
+              //       <h1 id="enemy-collisions">
+              //         Enemy Collisions: {enemiesCollidedWithState}/3
+              //       </h1>
+              //       <h1 id="total-game-time">Total Game Time: 0.00 seconds</h1>
+              //       <div
+              //         id="laser-reset-bar"
+              //         style={{
+              //           width: "100%",
+              //           height: "20px",
+              //           backgroundColor: "#ddd",
+              //         }}
+              //       ></div>
+              //     </>
+              //   ) : (
+              //     <h1>Login to see stats</h1>
+              //   )}
+              // </div>
+              <></>
+            )}
             {!gameStarted && loggedIn ? (
               <button
                 onClick={() => setGameStarted(true)}
@@ -951,7 +1047,11 @@ const GameComponent = dynamic(
               >
                 Start Game
               </button>
-            ) : <Link href="/auth/ui/signup" replace>Login</Link>}
+            ) : (
+              <Link href="/auth/ui/signup" replace>
+                Login
+              </Link>
+            )}
             {gameStarted && <div ref={gameRef}></div>}
           </div>
         );

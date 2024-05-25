@@ -4,3 +4,6 @@
 body {
   @apply bg-black text-white;
 }
+.icon {
+  vertical-align: bottom;
+}
