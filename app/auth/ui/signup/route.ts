@@ -8,6 +8,6 @@ export function GET() {
     return new Response('signin redirect', {
         status: 301,
         // Same Site strict was not being red at callback
-        headers: { 'Set-Cookie': `edgedb-pkce-verifier=${verifier}; HttpOnly; Path=/; Secure; SameSite=Lax`, "Location": redirectUrl.href },
+        headers: { 'Set-Cookie': `edgedb-pkce-verifier=${verifier}; HttpOnly; Path=/; Secure; SameSite=None`, "Location": redirectUrl.href },
     });
 }
