@@ -73,6 +73,10 @@ const GameComponent = dynamic(
         friendlySpawnEvent!: Phaser.Time.TimerEvent;
         totalFriendliesPassed: number = 0;
         friendliesCollected: number = 0;
+        laserShootSound!: Phaser.Sound.BaseSound;
+        laserHitSound!: Phaser.Sound.BaseSound;
+        kachingSound!: Phaser.Sound.BaseSound;
+        errorSound!: Phaser.Sound.BaseSound;
         backgroundMusic!: Phaser.Sound.BaseSound;
         enemiesHit: number = 0;
         acceptanceRateText!: Phaser.GameObjects.Text;
@@ -114,6 +118,10 @@ const GameComponent = dynamic(
           this.load.image("Meteors", "/Meteors.png");
           this.load.image("Stars", "/Stars.png");
           this.load.audio("soundtrack", "/soundtrack.mp3");
+          this.load.audio("laserShootSound", "/laserShoot.mp3");
+          this.load.audio("laserHitSound", "/laserHit.mp3");
+          this.load.audio("kachingSound", "/kaching.mp3");
+          this.load.audio("errorSound", "/error.mp3");
         }
         //  initialize game elements
         initializeGameElements() {
@@ -184,6 +192,18 @@ const GameComponent = dynamic(
             }),
             frameRate: 5,
             repeat: -1,
+          });
+          this.laserShootSound = this.sound.add("laserShootSound", {
+            volume: 0.3,
+          });
+          this.laserHitSound = this.sound.add("laserHitSound", {
+            volume: 0.5,
+          });
+          this.kachingSound = this.sound.add("kachingSound", {
+            volume: 0.5,
+          });
+          this.errorSound = this.sound.add("errorSound", {
+            volume: 0.5,
           });
           this.backgroundMusic = this.sound.add("soundtrack", { loop: true });
           this.backgroundMusic.play();
@@ -283,6 +303,7 @@ const GameComponent = dynamic(
                 this.enemies.remove(enemy, true, true);
                 this.hitEnemy(player, enemy);
                 this.player.play("portal-animate");
+                this.errorSound.play();
               }
             }
           );
@@ -303,6 +324,7 @@ const GameComponent = dynamic(
 
                 this.enemiesKilledWithLaser += 1;
                 this.updateEnemiesKilled();
+                this.laserHitSound.play();
               }
             }
           );
@@ -620,6 +642,7 @@ const GameComponent = dynamic(
               laser.setVelocityY(-800);
               this.availableLasers--;
               this.lastLaserShotTime = currentTime;
+              this.laserShootSound.play();
             }
           } else {
             // console.log("No lasers available to fire.");
@@ -717,6 +740,7 @@ const GameComponent = dynamic(
             this.updateHitRate();
             this.updateAcceptanceRate();
             this.player.play("portal-animate");
+            this.kachingSound.play();
           }
         }
 
