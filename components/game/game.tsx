@@ -409,18 +409,9 @@ const GameComponent = dynamic(
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-
-            const hitRateElement = document.getElementById("hit-rate");
-            if (hitRateElement) {
-              hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
-                2
-              )}%`;
-            }
+            this.setAcceptanceRateState(acceptanceRate);
           } else {
-            const hitRateElement = document.getElementById("hit-rate");
-            if (hitRateElement) {
-              hitRateElement.innerText = "Hit Rate: 0%";
-            }
+            this.setAcceptanceRateState(0);
           }
         }
 

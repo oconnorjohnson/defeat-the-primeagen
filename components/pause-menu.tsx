@@ -166,7 +166,7 @@ export default function PauseMenu() {
                 </div>
                 <div>
                   Acceptance Rate:{" "}
-                  <span className="font-light">{acceptanceRateState}</span>
+                  <span className="font-light">{acceptanceRateState}%</span>
                 </div>
               </div>
             </div>
