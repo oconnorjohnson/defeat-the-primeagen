@@ -1,5 +1,5 @@
 "use client";
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   gamePausedAtom,
   scoreAtom,
@@ -19,16 +19,15 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 
 export default function PauseMenu() {
-  const [isGamePaused] = useAtom(gamePausedAtom);
+  const isGamePaused = useAtomValue(gamePausedAtom);
+  const scoreState = useAtomValue(scoreAtom);
+  const enemiesKilledWithLaserState = useAtomValue(enemiesKilledWithLaserAtom);
+  const enemiesCollidedWithState = useAtomValue(enemiesCollidedWithAtom);
+  const totalFriendlyPassedState = useAtomValue(totalFriendliesPassedAtom);
+  const hitRateState = useAtomValue(hitRateAtom);
+  const acceptanceRateState = useAtomValue(acceptanceRateAtom);
 
   if (!isGamePaused) return null;
-
-  const [scoreState] = useAtom(scoreAtom);
-  const [enemiesKilledWithLaserState] = useAtom(enemiesKilledWithLaserAtom);
-  const [enemiesCollidedWithState] = useAtom(enemiesCollidedWithAtom);
-  const [totalFriendlyPassedState] = useAtom(totalFriendliesPassedAtom);
-  const [hitRateState] = useAtom(hitRateAtom);
-  const [acceptanceRateState] = useAtom(acceptanceRateAtom);
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
@@ -65,7 +64,7 @@ export default function PauseMenu() {
                 </span>
               </div>
             </div>
-            <div className="pb-24">
+            <div className="pb-4">
               <div className="flex flex-col p-4 text-xl font-semibold text-zinc-800">
                 Apps
               </div>
@@ -143,7 +142,33 @@ export default function PauseMenu() {
             </div>
 
             <div className="flex flex-col p-6 text-xl font-semibold text-zinc-800">
-              Settings {"("}3{")"}
+              Current Game Stats:
+              <div className="font-medium text-lg">
+                <div>
+                  Score: <span className="font-light">{scoreState}</span>
+                </div>
+                <div>
+                  Enemies Killed:{" "}
+                  <span className="font-light">
+                    {enemiesKilledWithLaserState}
+                  </span>
+                </div>
+                <div>
+                  Enemy Collisions:{" "}
+                  <span className="font-light">{enemiesCollidedWithState}</span>
+                </div>
+                <div>
+                  Total Friendly Passed:{" "}
+                  <span className="font-light">{totalFriendlyPassedState}</span>
+                </div>
+                <div>
+                  Hit Rate: <span className="font-light">{hitRateState}</span>
+                </div>
+                <div>
+                  Acceptance Rate:{" "}
+                  <span className="font-light">{acceptanceRateState}</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="px-2" />
