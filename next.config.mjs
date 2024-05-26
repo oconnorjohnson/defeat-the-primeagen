@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-import { NextConfig } from "next";
+
 import crypto from "crypto-browserify";
 
 const nextConfig = {
