@@ -1,3 +1,4 @@
+"use server";
 import { cookies } from "next/headers";
 import { client } from "./client";
 import { evaluateStats } from "./utils";
