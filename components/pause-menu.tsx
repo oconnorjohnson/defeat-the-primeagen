@@ -178,7 +178,7 @@ export default function PauseMenu() {
                 seconds.
                 <br />
                 {
-                  "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time. Use `:wq` to save and exit at any time."
+                  "Use `H` or `left arrow` to move left, and `L` or `right arrow` to move right. Use `F` or `backspace` to fire a laser. Use `spacebar` to pause. Use `:wq` to save and exit."
                 }
               </div>
             </div>

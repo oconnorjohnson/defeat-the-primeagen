@@ -115,7 +115,6 @@ const GameComponent = dynamic(
             frameHeight: 50,
           });
           this.load.image("laser", "/laser.png");
-          this.load.image("background", "/gamebgtile.png");
           this.load.image("BG", "/BG.png");
           this.load.image("Meteors", "/Meteors.png");
           this.load.image("Stars", "/Stars.png");
@@ -148,6 +147,12 @@ const GameComponent = dynamic(
           this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
+          this.scoreText = this.add
+            .text(this.scale.width - 10, 10, `Score: ${this.score}`, {
+              font: "40px Arial",
+              stroke: "#00ff00",
+            })
+            .setOrigin(1, 0);
           this.lastRateDecreaseTime = this.gameStartTime;
           this.setupEnemySpawnEvent();
           this.gameDurationTimer = this.time.addEvent({
@@ -287,7 +292,7 @@ const GameComponent = dynamic(
             10,
             "Time until lasers reset:",
             {
-              font: "16px Arial",
+              font: "30px Arial",
               stroke: "#00ff00",
             }
           );
@@ -511,8 +516,6 @@ const GameComponent = dynamic(
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
-              this.score -= 1;
-              this.updateScore();
 
               this.totalFriendliesPassed++;
               this.setTotalFriendliesPassedState(this.totalFriendliesPassed);
@@ -580,7 +583,7 @@ const GameComponent = dynamic(
             // Set the bar to 100% full when the game ends
             this.laserResetBar.fillStyle(0x00ff00, 1); // Green color
             this.laserResetBar.fillRect(10, 30, 200, 20); // Full width
-            this.laserResetText.setPosition(10, 10);
+            this.laserResetText.setPosition(10, 50);
             return;
           }
           this.laserResetBar.fillStyle(0x00ff00, 1); // green color
@@ -591,7 +594,7 @@ const GameComponent = dynamic(
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
           const barWidth = percentageLeft;
           // draw the bar at the top left of the viewport
-          this.laserResetBar.fillRect(10, 30, barWidth, 20);
+          this.laserResetBar.fillRect(10, 50, barWidth, 20);
           // update the position of the text above the bar
           this.laserResetText.setPosition(10, 10);
         }
@@ -602,6 +605,7 @@ const GameComponent = dynamic(
             scoreElement.innerText = `Score: ${this.score}`;
           }
           this.setScoreState(this.score);
+          this.scoreText.setText(`Score: ${this.score}`);
         }
 
         updateHitRate() {
@@ -781,6 +785,28 @@ const GameComponent = dynamic(
           );
         }
 
+        restartGame() {
+          this.enemiesKilledWithLaser = 0;
+          this.updateEnemiesKilled();
+          this.gameIsActive = true;
+          this.clearEnemyStates();
+          this.enemiesHit = 0;
+          this.updateEnemyCollisions();
+          this.score = 0;
+          this.updateScore();
+          this.enemiesKilledWithLaser = 0;
+          this.friendliesCollected = 0;
+          this.totalFriendliesPassed = 0;
+          this.updateHitRate();
+          this.updateAcceptanceRate();
+          this.timeUntilNextReset = this.laserResetDuration;
+          this.setupLaserResetTimer();
+          this.drawLaserResetBar();
+          this.backgroundMusic.stop();
+          this.scene.restart();
+          this.initializeGameElements();
+        }
+
         hitEnemy(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -855,25 +881,7 @@ const GameComponent = dynamic(
                   .setOrigin(0.5)
                   .setInteractive()
                   .on("pointerdown", () => {
-                    this.enemiesKilledWithLaser = 0;
-                    this.updateEnemiesKilled();
-                    this.gameIsActive = true;
-                    this.clearEnemyStates();
-                    this.enemiesHit = 0;
-                    this.updateEnemyCollisions();
-                    this.score = 0;
-                    this.updateScore();
-                    this.enemiesKilledWithLaser = 0;
-                    this.friendliesCollected = 0;
-                    this.totalFriendliesPassed = 0;
-                    this.updateHitRate();
-                    this.updateAcceptanceRate();
-                    this.timeUntilNextReset = this.laserResetDuration;
-                    this.setupLaserResetTimer();
-                    this.drawLaserResetBar();
-                    this.backgroundMusic.stop();
-                    this.scene.restart();
-                    this.initializeGameElements();
+                    this.restartGame();
                   });
               }
             }
@@ -1128,7 +1136,7 @@ const GameComponent = dynamic(
                   seconds.
                   <br />
                   {
-                    "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time. Use `:wq` to save and exit at any time."
+                    "Use `H` or `left arrow` to move left, and `L` or `right arrow` to move right. Use `F` or `backspace` to fire a laser. Use `spacebar` to pause. Use `:wq` to save and exit."
                   }
                 </div>
                 <button
@@ -1139,9 +1147,15 @@ const GameComponent = dynamic(
                 </button>
               </div>
             ) : (
-              <Link href="/auth/ui/signup" replace>
-                Login
-              </Link>
+              <>
+                <Link
+                  href="/auth/ui/signup"
+                  replace
+                  className="text-zinc-800 bg-green-500 hover:scale-110 text-xl font-bold py-2 px-4 rounded-xl cursor-pointer transition-all"
+                >
+                  Sign-In
+                </Link>
+              </>
             )}
             {gameStarted && <div ref={gameRef}></div>}
           </div>
