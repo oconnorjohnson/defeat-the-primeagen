@@ -1,5 +1,6 @@
 import { expect, describe, it, vi } from "vitest";
-import { updateAchievements, Stat } from "../achievement-actions";
+import { updateAchievements } from "../achievement-actions";
+import { Stat } from "../interfaces";
 import { updateAchievementsQuery, evaluateStats } from "../utils";
 // Mock next/headers
 vi.mock("next/headers", () => ({
