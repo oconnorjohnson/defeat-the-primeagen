@@ -1,6 +1,14 @@
 "use client";
 import { useAtom } from "jotai";
-import { gamePausedAtom } from "@/state/atoms";
+import {
+  gamePausedAtom,
+  scoreAtom,
+  enemiesKilledWithLaserAtom,
+  enemiesCollidedWithAtom,
+  acceptanceRateAtom,
+  totalFriendliesPassedAtom,
+  hitRateAtom,
+} from "@/state/atoms";
 import {
   VscChromeClose,
   VscChromeMaximize,
@@ -12,7 +20,15 @@ import Image from "next/image";
 
 export default function PauseMenu() {
   const [isGamePaused] = useAtom(gamePausedAtom);
+
   if (!isGamePaused) return null;
+
+  const [scoreState] = useAtom(scoreAtom);
+  const [enemiesKilledWithLaserState] = useAtom(enemiesKilledWithLaserAtom);
+  const [enemiesCollidedWithState] = useAtom(enemiesCollidedWithAtom);
+  const [totalFriendlyPassedState] = useAtom(totalFriendliesPassedAtom);
+  const [hitRateState] = useAtom(hitRateAtom);
+  const [acceptanceRateState] = useAtom(acceptanceRateAtom);
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
