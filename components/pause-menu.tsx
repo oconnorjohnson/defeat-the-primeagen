@@ -7,7 +7,7 @@ import {
   enemiesCollidedWithAtom,
   acceptanceRateAtom,
   totalFriendliesPassedAtom,
-  hitRateAtom,
+  viewportDimensionsAtom,
 } from "@/state/atoms";
 import {
   VscChromeClose,
@@ -16,6 +16,7 @@ import {
 } from "react-icons/vsc";
 import { GoSearch } from "react-icons/go";
 import { MdKeyboardArrowRight } from "react-icons/md";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 
 export default function PauseMenu() {
@@ -24,14 +25,20 @@ export default function PauseMenu() {
   const enemiesKilledWithLaserState = useAtomValue(enemiesKilledWithLaserAtom);
   const enemiesCollidedWithState = useAtomValue(enemiesCollidedWithAtom);
   const totalFriendlyPassedState = useAtomValue(totalFriendliesPassedAtom);
-  const hitRateState = useAtomValue(hitRateAtom);
   const acceptanceRateState = useAtomValue(acceptanceRateAtom);
+  const viewportDimensionsState = useAtomValue(viewportDimensionsAtom);
 
   if (!isGamePaused) return null;
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
-      <div className="flex flex-col bg-zinc-200 w-[1075px] h-[825px] rounded-xl">
+      <div
+        style={{
+          width: viewportDimensionsState[0],
+          height: viewportDimensionsState[1],
+        }}
+        className="flex flex-col bg-zinc-200  rounded-xl"
+      >
         <div className="w-full flex flex-row justify-end items-end h-[40px] text-zinc-600">
           <div className="flex flex-col h-full justify-end">
             <VscChromeMinimize className="h-6 w-6 icon" />
@@ -129,20 +136,58 @@ export default function PauseMenu() {
                 <MdKeyboardArrowRight className="h-8 w-8" />
               </div>
             </div>
-            <div className="flex flex-col p-6 text-xl font-semibold text-zinc-800">
-              Search the web
-            </div>
-            <div className="w-full flex flex-row items-center text-zinc-600 text-xl ">
-              <div className="px-4" />
-              <GoSearch className="h-6 w-6 pt-1" />
-              <div className="pt-1.5 pl-2">Defeat the Primeagen</div>
-              <div className="pt-2 pl-2 text-zinc-500 text-sm">
-                {"-"} See more web results
+            <div className="flex flex-col py-2 px-6 text-xl font-semibold text-zinc-800">
+              Your Achievements
+              <div className="font-medium text-lg">
+                <ScrollArea className="w-full h-[100px]">
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                  <div>
+                    Enemies Killed:{" "}
+                    <span className="font-light">
+                      {enemiesKilledWithLaserState}
+                    </span>
+                  </div>
+                </ScrollArea>
               </div>
             </div>
 
-            <div className="flex flex-col p-6 text-xl font-semibold text-zinc-800">
-              Current Game Stats:
+            <div className="flex flex-col py-2 px-6 text-xl font-semibold text-zinc-800">
+              Current Game Stats{" (5)"}
               <div className="font-medium text-lg">
                 <div>
                   Score: <span className="font-light">{scoreState}</span>
@@ -160,9 +205,6 @@ export default function PauseMenu() {
                 <div>
                   Total Friendly Passed:{" "}
                   <span className="font-light">{totalFriendlyPassedState}</span>
-                </div>
-                <div>
-                  Hit Rate: <span className="font-light">{hitRateState}</span>
                 </div>
                 <div>
                   Acceptance Rate:{" "}
@@ -225,8 +267,8 @@ export default function PauseMenu() {
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-row items-start h-full border-t-2 border-zinc-700 text-zinc-600 text-xl ">
-          <div className="flex flex-row items-center pt-1.5 pl-1">
+        <div className="w-full flex flex-row items-center h-full border-t-2 border-zinc-700 text-zinc-600 text-xl ">
+          <div className="flex flex-row items-center pl-1">
             <GoSearch className="h-10 w-10 px-2" />
             <div className="">Defeat the Primeagen</div>
           </div>

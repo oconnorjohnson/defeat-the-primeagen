@@ -18,6 +18,7 @@ import {
   acceptanceRateAtom,
   totalFriendliesPassedAtom,
   hitRateAtom,
+  viewportDimensionsAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
 import { updateAchievements, Stat } from "@/lib/achievement-actions";
@@ -885,7 +886,9 @@ const GameComponent = dynamic(
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
-
+        const [viewportDimensions, setViewportDimensions] = useAtom(
+          viewportDimensionsAtom
+        );
         const [loggedIn, setLoggedIn] = useState(true);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
@@ -1028,20 +1031,21 @@ const GameComponent = dynamic(
             // console.log("No scene found");
           }
         }, [isGamePaused, game]);
-        useEffect(() => {
-          const resizeGame = () => {
-            setWidth(window.innerWidth - sideBarWidth);
-            setHeight(window.innerHeight);
-            if (gameRef.current && game) {
-              game.scale.resize(width, height);
-            }
-          };
+        // useEffect(() => {
+        //   const resizeGame = () => {
+        //     setWidth(window.innerWidth);
+        //     setHeight(window.innerHeight);
+        //     setViewportDimensions([window.innerWidth, window.innerHeight]);
+        //     if (gameRef.current && game) {
+        //       game.scale.resize(width, height);
+        //     }
+        //   };
 
-          window.addEventListener("resize", resizeGame);
-          return () => {
-            window.removeEventListener("resize", resizeGame);
-          };
-        }, [game, width, height]);
+        //   window.addEventListener("resize", resizeGame);
+        //   return () => {
+        //     window.removeEventListener("resize", resizeGame);
+        //   };
+        // }, [game, width, height, setWidth, setHeight, setViewportDimensions]);
 
         return (
           <div
