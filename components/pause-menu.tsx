@@ -1,5 +1,5 @@
 "use client";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useAtom } from "jotai";
 import {
   gamePausedAtom,
   scoreAtom,
@@ -20,7 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 
 export default function PauseMenu() {
-  const isGamePaused = useAtomValue(gamePausedAtom);
+  const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
   const scoreState = useAtomValue(scoreAtom);
   const enemiesKilledWithLaserState = useAtomValue(enemiesKilledWithLaserAtom);
   const enemiesCollidedWithState = useAtomValue(enemiesCollidedWithAtom);
@@ -234,6 +234,7 @@ export default function PauseMenu() {
               <button
                 className="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-400 transition-all"
                 type="button"
+                onClick={() => setIsGamePaused(false)}
               >
                 Resume
               </button>
