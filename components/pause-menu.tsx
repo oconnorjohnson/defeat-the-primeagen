@@ -238,12 +238,12 @@ export default function PauseMenu() {
                 Resume
               </button>
               <div className="py-2"></div>
-              <button
+              {/* <button
                 className="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-400 transition-all"
                 type="button"
               >
                 Restart
-              </button>
+              </button> */}
               <div className="py-2"></div>
               <button
                 className="py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-400 transition-all"
