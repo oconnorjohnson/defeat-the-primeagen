@@ -1,11 +1,5 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 import crypto from "node:crypto";
 import { Stat } from "@/lib/interfaces";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 /**
  * Generate a random Base64 url-encoded string, and derive a "challenge"

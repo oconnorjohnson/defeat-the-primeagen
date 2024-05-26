@@ -21,7 +21,8 @@ import {
   viewportDimensionsAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
-import { updateAchievements, Stat } from "@/lib/achievement-actions";
+import { updateAchievements } from "@/lib/achievement-actions";
+import { Stat } from "@/lib/interfaces";
 
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state

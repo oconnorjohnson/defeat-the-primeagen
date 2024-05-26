@@ -16,7 +16,6 @@ import {
 } from "react-icons/vsc";
 import { GoSearch } from "react-icons/go";
 import { MdKeyboardArrowRight } from "react-icons/md";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 
 export default function PauseMenu() {
@@ -139,7 +138,7 @@ export default function PauseMenu() {
             <div className="flex flex-col py-2 px-6 text-xl font-semibold text-zinc-800">
               Your Achievements
               <div className="font-medium text-lg">
-                <ScrollArea className="w-full h-[100px]">
+                <div className="w-full h-[100px]">
                   <div>
                     Enemies Killed:{" "}
                     <span className="font-light">
@@ -182,7 +181,7 @@ export default function PauseMenu() {
                       {enemiesKilledWithLaserState}
                     </span>
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             </div>
 
