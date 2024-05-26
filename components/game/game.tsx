@@ -85,6 +85,7 @@ const GameComponent = dynamic(
         lasers!: Phaser.Physics.Arcade.Group;
         availableLasers: number = 10;
         laserResetTimer!: Phaser.Time.TimerEvent;
+        laserResetText!: Phaser.GameObjects.Text;
         laserResetBar!: Phaser.GameObjects.Graphics;
         playerTrail!: Phaser.GameObjects.Group;
         laserResetDuration: number = 30000;
@@ -127,7 +128,7 @@ const GameComponent = dynamic(
         //  initialize game elements
         initializeGameElements() {
           this.setupLaserResetTimer();
-          this.drawLaserResetBar();
+          this.laserResetBar = this.add.graphics();
         }
         // create class method that runs on game start
         create() {
@@ -206,7 +207,10 @@ const GameComponent = dynamic(
           this.errorSound = this.sound.add("errorSound", {
             volume: 0.5,
           });
-          this.backgroundMusic = this.sound.add("soundtrack", { loop: true });
+          this.backgroundMusic = this.sound.add("soundtrack", {
+            loop: true,
+            volume: 1.5,
+          });
           this.backgroundMusic.play();
 
           // create a group for player trails
@@ -277,6 +281,16 @@ const GameComponent = dynamic(
           });
           // give the kid a laser reset bar
           this.laserResetBar = this.add.graphics();
+          // initialize the laser reset text duh
+          this.laserResetText = this.add.text(
+            10,
+            10,
+            "Time until lasers reset:",
+            {
+              font: "16px Arial",
+              stroke: "#00ff00",
+            }
+          );
           // can't forget to draw that bih to the scene
           this.drawLaserResetBar();
           // now create the 30 second timer as a delay after which we resest da boys lasers AND reset the timer
@@ -361,6 +375,9 @@ const GameComponent = dynamic(
             this.gameDurationTimer.paused = true;
             this.elapsedTimeDuringPause = Date.now(); // Capture the current time when pausing
           }
+          if (this.backgroundMusic && this.backgroundMusic.isPlaying) {
+            this.backgroundMusic.pause();
+          }
         }
 
         resumeGameDurationTimer() {
@@ -368,6 +385,9 @@ const GameComponent = dynamic(
             const pausedDuration = Date.now() - this.elapsedTimeDuringPause; // Calculate the paused duration
             this.gameStartTime += pausedDuration; // Adjust the game start time by the paused duration
             this.gameDurationTimer.paused = false;
+          }
+          if (this.backgroundMusic && this.backgroundMusic.isPaused) {
+            this.backgroundMusic.resume();
           }
         }
 
@@ -501,8 +521,6 @@ const GameComponent = dynamic(
             return true;
           });
 
-          this.drawLaserResetBar();
-
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
               if (laser.y < 0) {
@@ -555,23 +573,27 @@ const GameComponent = dynamic(
           }
         }
         drawLaserResetBar() {
+          // clear previous graphics
+          this.laserResetBar.clear();
+
           if (!this.gameIsActive) {
-            const laserResetBar = document.getElementById("laser-reset-bar");
-            if (laserResetBar) {
-              laserResetBar.style.width = "100%";
-              laserResetBar.style.backgroundColor = "#ddd"; // Static color when game is paused or ended
-            }
+            // Set the bar to 100% full when the game ends
+            this.laserResetBar.fillStyle(0x00ff00, 1); // Green color
+            this.laserResetBar.fillRect(10, 30, 200, 20); // Full width
+            this.laserResetText.setPosition(10, 10);
             return;
           }
+          this.laserResetBar.fillStyle(0x00ff00, 1); // green color
+          // calculate the width based on time until the next laser reset
           const currentTime = Date.now();
           const timePassed = currentTime - this.lastLaserResetTime; // Use lastLaserResetTime here
           const timeLeft = this.laserResetDuration - timePassed;
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
-          const laserResetBar = document.getElementById("laser-reset-bar");
-          if (laserResetBar) {
-            laserResetBar.style.width = `${Math.max(0, percentageLeft)}%`;
-            laserResetBar.style.backgroundColor = "#00ff00"; // Dynamic color when game is active
-          }
+          const barWidth = percentageLeft;
+          // draw the bar at the top left of the viewport
+          this.laserResetBar.fillRect(10, 30, barWidth, 20);
+          // update the position of the text above the bar
+          this.laserResetText.setPosition(10, 10);
         }
 
         updateScore() {
@@ -811,10 +833,10 @@ const GameComponent = dynamic(
                   .text(
                     this.scale.width / 2,
                     this.scale.height / 2,
-                    "Game Over",
+                    "SKILL ISSUES",
                     {
                       fontSize: "40px",
-                      color: "#000000",
+                      color: "#00ff00",
                     }
                   )
                   .setOrigin(0.5);
@@ -1106,7 +1128,7 @@ const GameComponent = dynamic(
                   seconds.
                   <br />
                   {
-                    "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time."
+                    "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time. Use `:wq` to save and exit at any time."
                   }
                 </div>
                 <button

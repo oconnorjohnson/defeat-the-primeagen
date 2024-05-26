@@ -11,8 +11,8 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 
 export default function PauseMenu() {
-  const [isGamePaused] = useAtom(gamePausedAtom);
-  if (!isGamePaused) return null;
+  // const [isGamePaused] = useAtom(gamePausedAtom);
+  // if (!isGamePaused) return null;
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
@@ -170,12 +170,25 @@ export default function PauseMenu() {
                 <br />
                 {"("}Save {"&"} Exit{")"}
               </button>
+              <div className="flex flex-col items-start">
+                <span className="font-bold pt-4">Game Play:</span>
+                Move left and right to move the portal. Try to accept all safe
+                requests while dodging nefarious ones. Defend yourself with your
+                lasers, but be sparing, because you only get 10 every 30
+                seconds.
+                <br />
+                {
+                  "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time. Use `:wq` to save and exit at any time."
+                }
+              </div>
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-row h-[80px] border-t-2 border-zinc-700 text-zinc-600 p-4 text-xl ">
-          <GoSearch className="h-10 w-10 pr-4" />{" "}
-          <div className="pt-1.5">Defeat the Primeagen</div>
+        <div className="w-full flex flex-row items-start h-full border-t-2 border-zinc-700 text-zinc-600 text-xl ">
+          <div className="flex flex-row items-center pt-1.5 pl-1">
+            <GoSearch className="h-10 w-10 px-2" />{" "}
+            <div className="">Defeat the Primeagen</div>
+          </div>
         </div>
       </div>
     </div>
