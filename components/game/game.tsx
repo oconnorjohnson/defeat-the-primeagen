@@ -904,14 +904,14 @@ const GameComponent = dynamic(
               })
               .catch((e) => e);
 
-              getTopScores()
-              .then(res => {
+            getTopScores()
+              .then((res) => {
                 if (res) {
                   const resJson = JSON.parse(res);
                   console.log(resJson);
                 }
               })
-              .catch(error => console.error(error));
+              .catch((error) => console.error(error));
             return;
           }
 
@@ -1096,16 +1096,26 @@ const GameComponent = dynamic(
               <div></div>
             )} */}
             {!gameStarted && loggedIn ? (
-              <button
-                onClick={() => setGameStarted(true)}
-                style={{
-                  padding: "10px 20px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                }}
-              >
-                Start Game
-              </button>
+              <div className="flex flex-col items-center justify-center w-1/3 bg-zinc-700 p-4 rounded-xl">
+                <div className="flex flex-col items-start">
+                  <span className="font-bold py-1">Instructions:</span>
+                  <br />
+                  Move left and right to move the portal. Try to accept all safe
+                  requests while dodging nefarious ones. Defend yourself with
+                  your lasers, but be sparing, because you only get 10 every 30
+                  seconds.
+                  <br />
+                  {
+                    "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time."
+                  }
+                </div>
+                <button
+                  onClick={() => setGameStarted(true)}
+                  className="cursor-pointer bg-zinc-300 hover:bg-green-500 text-zinc-800 font-bold py-2 mt-4 px-4 rounded-2xl"
+                >
+                  Start Game
+                </button>
+              </div>
             ) : (
               <Link href="/auth/ui/signup" replace>
                 Login
@@ -1117,7 +1127,16 @@ const GameComponent = dynamic(
       };
       return Game;
     }),
-  { ssr: false, loading: () => <p>Loading game...</p> }
+  {
+    ssr: false,
+    loading: () => (
+      <>
+        <div className="flex flex-row justify-center items-center h-full w-full text-zinc-800 font-black text-3xl">
+          <p className="py-2 px-4 rounded-xl bg-zinc-300">Loading game...</p>
+        </div>
+      </>
+    ),
+  }
 );
 
 export default GameComponent;
