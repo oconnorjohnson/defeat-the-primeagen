@@ -11,8 +11,8 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 
 export default function PauseMenu() {
-  // const [isGamePaused] = useAtom(gamePausedAtom);
-  // if (!isGamePaused) return null;
+  const [isGamePaused] = useAtom(gamePausedAtom);
+  if (!isGamePaused) return null;
 
   return (
     <div className="fixed inset-0  flex items-center justify-center z-50">
@@ -186,7 +186,7 @@ export default function PauseMenu() {
         </div>
         <div className="w-full flex flex-row items-start h-full border-t-2 border-zinc-700 text-zinc-600 text-xl ">
           <div className="flex flex-row items-center pt-1.5 pl-1">
-            <GoSearch className="h-10 w-10 px-2" />{" "}
+            <GoSearch className="h-10 w-10 px-2" />
             <div className="">Defeat the Primeagen</div>
           </div>
         </div>
