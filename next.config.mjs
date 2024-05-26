@@ -1,18 +1,18 @@
 /** @type {import('next').NextConfig} */
-const { NextConfig } = require("next");
+import { NextConfig } from "next";
+import crypto from "crypto-browserify";
+
 const nextConfig = {
   webpack: (config) => {
     config.resolve = {
       ...config.resolve,
       fallback: {
         ...config.resolve.fallback,
-        crypto: require.resolve("crypto-browserify"),
+        crypto: crypto,
       },
     };
     return config;
   },
 };
-
-module.exports = nextConfig;
 
 export default nextConfig;
