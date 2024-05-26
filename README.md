@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Defeat the Primeagen
 
-## Getting Started
+## What IS this?
 
-First, run the development server:
+We participated in the 2024 EdgeDB hackathon by creating a silly game based on Space Invaders called Defeat the Primeagen. 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## EdgeDB Usage in the Project
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For our project, we decided to create a game called *Defeat The Primeagen*, inspired by *Space Invaders*. We utilized EdgeDB Cloud, EdgeDB Auth, and wrote all our queries using EdgeQL.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To play the game, a user must log in via GitHub OAuth. After logging in, users are redirected back to our site. If a user is not already registered in our database, we create a new user entry. At the time of user creation, we also generate links to new stat and achievement objects. The stat object holds game data such as scores and enemies destroyed, while the achievement object collects humorous achievements the player can earn by meeting various random stat combinations. These achievements are named after different "Prime-isms"—phrases that The Primeagen says on his streams. For example, to earn the "420" achievement, a user must score 420 points, and to earn the "Chat Stack" achievement, they must miss three friendly requests. The stat combinations are intentionally ridiculous, with some being impossible to achieve, aligning with our aim to create a meme-worthy game.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+We decided to update player stats and achievements whenever they pause the game. Moving forward, we are exploring other options for triggering database updates. We also retrieve the current user's stats and achievements before the game begins, along with the top five user scores. We are still working on visualizing the retrieved data.
 
-## Learn More
+Working with EdgeDB has been an interesting experience. I started by exploring various quick starts and eventually worked through seven or eight chapters of the EdgeDB book, which creatively uses Dracula as the backdrop for learning about EdgeDB. My favorite aspect so far is the EdgeQL language, which I would definitely consider using in future projects. Deploying EdgeDB Cloud, using the CLI tool, and handling migrations have all been straightforward and enjoyable. The only part I found challenging was implementing EdgeDB Auth, as I felt there could be more examples and additional information to aid in setup.
 
-To learn more about Next.js, take a look at the following resources:
+Overall, creating *Defeat The Primeagen* with EdgeDB has been a rewarding experience, and I look forward to refining the game further.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributors
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Christine Dang [ChristineDang](https://github.com/ChristineDang)
 
-## Deploy on Vercel
+Christine illustrated and designed most of the assests in our game and menus, including
+the animated sprites of the binary/Primeagen, the server background, and the pause screen.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Keegan Anglim [guitarkeegan](github.com/guitarkeeegan)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Setup user authentication with EdgeDB and Github, as well as all EdgeDb queries and interactions. He also wrote the sick game soundtrack 🚀
+
+Daniel Johnson [oconnorjohnson](github.com/oconnorjohnson)
+
+Daniel did everything else! He used PhaserJS along with NextJS, to create the Space Invadors style game, and implemented all of Christine's designs and animation.
+
+## Now, go defeat the Primeagen!
+
+[Defeate_the_Primeagen](https://defeat-the-primeagen.vercel.app/)
