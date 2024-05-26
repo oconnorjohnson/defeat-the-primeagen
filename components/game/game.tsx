@@ -18,9 +18,11 @@ import {
   acceptanceRateAtom,
   totalFriendliesPassedAtom,
   hitRateAtom,
+  viewportDimensionsAtom,
 } from "@/state/atoms";
 import ScoreCalculator from "@/components/game/ScoreCalculator";
-import { updateAchievements, Stat } from "@/lib/achievement-actions";
+import { updateAchievements } from "@/lib/achievement-actions";
+import { Stat } from "@/lib/interfaces";
 
 // game component is a wrapper around phaser game, which dynamically loads the phaser library to interop with next ssr and client side rendering
 // MainScene defines the game logic and state
@@ -85,6 +87,7 @@ const GameComponent = dynamic(
         lasers!: Phaser.Physics.Arcade.Group;
         availableLasers: number = 10;
         laserResetTimer!: Phaser.Time.TimerEvent;
+        laserResetText!: Phaser.GameObjects.Text;
         laserResetBar!: Phaser.GameObjects.Graphics;
         playerTrail!: Phaser.GameObjects.Group;
         laserResetDuration: number = 30000;
@@ -114,7 +117,6 @@ const GameComponent = dynamic(
             frameHeight: 50,
           });
           this.load.image("laser", "/laser.png");
-          this.load.image("background", "/gamebgtile.png");
           this.load.image("BG", "/BG.png");
           this.load.image("Meteors", "/Meteors.png");
           this.load.image("Stars", "/Stars.png");
@@ -127,7 +129,7 @@ const GameComponent = dynamic(
         //  initialize game elements
         initializeGameElements() {
           this.setupLaserResetTimer();
-          this.drawLaserResetBar();
+          this.laserResetBar = this.add.graphics();
         }
         // create class method that runs on game start
         create() {
@@ -147,6 +149,12 @@ const GameComponent = dynamic(
           this.lastLaserResetTime = Date.now();
           this.cameras.main.setBackgroundColor("#b0c4de");
           this.gameStartTime = Date.now();
+          this.scoreText = this.add
+            .text(this.scale.width - 10, 10, `Score: ${this.score}`, {
+              font: "40px Arial",
+              stroke: "#00ff00",
+            })
+            .setOrigin(1, 0);
           this.lastRateDecreaseTime = this.gameStartTime;
           this.setupEnemySpawnEvent();
           this.gameDurationTimer = this.time.addEvent({
@@ -206,7 +214,10 @@ const GameComponent = dynamic(
           this.errorSound = this.sound.add("errorSound", {
             volume: 0.5,
           });
-          this.backgroundMusic = this.sound.add("soundtrack", { loop: true });
+          this.backgroundMusic = this.sound.add("soundtrack", {
+            loop: true,
+            volume: 1.5,
+          });
           this.backgroundMusic.play();
 
           // create a group for player trails
@@ -277,6 +288,16 @@ const GameComponent = dynamic(
           });
           // give the kid a laser reset bar
           this.laserResetBar = this.add.graphics();
+          // initialize the laser reset text duh
+          this.laserResetText = this.add.text(
+            10,
+            10,
+            "Time until lasers reset:",
+            {
+              font: "30px Arial",
+              stroke: "#00ff00",
+            }
+          );
           // can't forget to draw that bih to the scene
           this.drawLaserResetBar();
           // now create the 30 second timer as a delay after which we resest da boys lasers AND reset the timer
@@ -361,6 +382,9 @@ const GameComponent = dynamic(
             this.gameDurationTimer.paused = true;
             this.elapsedTimeDuringPause = Date.now(); // Capture the current time when pausing
           }
+          if (this.backgroundMusic && this.backgroundMusic.isPlaying) {
+            this.backgroundMusic.pause();
+          }
         }
 
         resumeGameDurationTimer() {
@@ -368,6 +392,9 @@ const GameComponent = dynamic(
             const pausedDuration = Date.now() - this.elapsedTimeDuringPause; // Calculate the paused duration
             this.gameStartTime += pausedDuration; // Adjust the game start time by the paused duration
             this.gameDurationTimer.paused = false;
+          }
+          if (this.backgroundMusic && this.backgroundMusic.isPaused) {
+            this.backgroundMusic.resume();
           }
         }
 
@@ -384,18 +411,9 @@ const GameComponent = dynamic(
           if (this.totalFriendliesPassed > 0) {
             const acceptanceRate =
               (this.friendliesCollected / this.totalFriendliesPassed) * 100;
-
-            const hitRateElement = document.getElementById("hit-rate");
-            if (hitRateElement) {
-              hitRateElement.innerText = `Hit Rate: ${acceptanceRate.toFixed(
-                2
-              )}%`;
-            }
+            this.setAcceptanceRateState(acceptanceRate);
           } else {
-            const hitRateElement = document.getElementById("hit-rate");
-            if (hitRateElement) {
-              hitRateElement.innerText = "Hit Rate: 0%";
-            }
+            this.setAcceptanceRateState(0);
           }
         }
 
@@ -491,8 +509,6 @@ const GameComponent = dynamic(
           this.friendlies.children.each((friendly: any) => {
             if (friendly.y > this.scale.height && friendly.active) {
               friendly.setActive(false).setVisible(false);
-              this.score -= 1;
-              this.updateScore();
 
               this.totalFriendliesPassed++;
               this.setTotalFriendliesPassedState(this.totalFriendliesPassed);
@@ -500,8 +516,6 @@ const GameComponent = dynamic(
             }
             return true;
           });
-
-          this.drawLaserResetBar();
 
           this.lasers.children.each((laser) => {
             if (laser instanceof Phaser.Physics.Arcade.Image) {
@@ -555,23 +569,27 @@ const GameComponent = dynamic(
           }
         }
         drawLaserResetBar() {
+          // clear previous graphics
+          this.laserResetBar.clear();
+
           if (!this.gameIsActive) {
-            const laserResetBar = document.getElementById("laser-reset-bar");
-            if (laserResetBar) {
-              laserResetBar.style.width = "100%";
-              laserResetBar.style.backgroundColor = "#ddd"; // Static color when game is paused or ended
-            }
+            // Set the bar to 100% full when the game ends
+            this.laserResetBar.fillStyle(0x00ff00, 1); // Green color
+            this.laserResetBar.fillRect(10, 30, 200, 20); // Full width
+            this.laserResetText.setPosition(10, 50);
             return;
           }
+          this.laserResetBar.fillStyle(0x00ff00, 1); // green color
+          // calculate the width based on time until the next laser reset
           const currentTime = Date.now();
           const timePassed = currentTime - this.lastLaserResetTime; // Use lastLaserResetTime here
           const timeLeft = this.laserResetDuration - timePassed;
           const percentageLeft = (timeLeft / this.laserResetDuration) * 100;
-          const laserResetBar = document.getElementById("laser-reset-bar");
-          if (laserResetBar) {
-            laserResetBar.style.width = `${Math.max(0, percentageLeft)}%`;
-            laserResetBar.style.backgroundColor = "#00ff00"; // Dynamic color when game is active
-          }
+          const barWidth = percentageLeft;
+          // draw the bar at the top left of the viewport
+          this.laserResetBar.fillRect(10, 50, barWidth, 20);
+          // update the position of the text above the bar
+          this.laserResetText.setPosition(10, 10);
         }
 
         updateScore() {
@@ -580,6 +598,7 @@ const GameComponent = dynamic(
             scoreElement.innerText = `Score: ${this.score}`;
           }
           this.setScoreState(this.score);
+          this.scoreText.setText(`Score: ${this.score}`);
         }
 
         updateHitRate() {
@@ -759,6 +778,28 @@ const GameComponent = dynamic(
           );
         }
 
+        restartGame() {
+          this.enemiesKilledWithLaser = 0;
+          this.updateEnemiesKilled();
+          this.gameIsActive = true;
+          this.clearEnemyStates();
+          this.enemiesHit = 0;
+          this.updateEnemyCollisions();
+          this.score = 0;
+          this.updateScore();
+          this.enemiesKilledWithLaser = 0;
+          this.friendliesCollected = 0;
+          this.totalFriendliesPassed = 0;
+          this.updateHitRate();
+          this.updateAcceptanceRate();
+          this.timeUntilNextReset = this.laserResetDuration;
+          this.setupLaserResetTimer();
+          this.drawLaserResetBar();
+          this.backgroundMusic.stop();
+          this.scene.restart();
+          this.initializeGameElements();
+        }
+
         hitEnemy(
           player:
             | Phaser.Types.Physics.Arcade.GameObjectWithBody
@@ -807,14 +848,20 @@ const GameComponent = dynamic(
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
+                updateGameStatistics(
+                  this.score,
+                  this.enemiesKilledWithLaser,
+                  this.enemiesHit,
+                  this.totalFriendliesPassed
+                );
                 this.add
                   .text(
                     this.scale.width / 2,
                     this.scale.height / 2,
-                    "Game Over",
+                    "SKILL ISSUES",
                     {
                       fontSize: "40px",
-                      color: "#000000",
+                      color: "#00ff00",
                     }
                   )
                   .setOrigin(0.5);
@@ -833,38 +880,34 @@ const GameComponent = dynamic(
                   .setOrigin(0.5)
                   .setInteractive()
                   .on("pointerdown", () => {
-                    this.enemiesKilledWithLaser = 0;
-                    this.updateEnemiesKilled();
-                    this.gameIsActive = true;
-                    this.clearEnemyStates();
-                    this.enemiesHit = 0;
-                    this.updateEnemyCollisions();
-                    this.score = 0;
-                    this.updateScore();
-                    this.enemiesKilledWithLaser = 0;
-                    this.friendliesCollected = 0;
-                    this.totalFriendliesPassed = 0;
-                    this.updateHitRate();
-                    this.updateAcceptanceRate();
-                    this.timeUntilNextReset = this.laserResetDuration;
-                    this.setupLaserResetTimer();
-                    this.drawLaserResetBar();
-                    this.backgroundMusic.stop();
-                    this.scene.restart();
-                    this.initializeGameElements();
+                    this.restartGame();
                   });
               }
             }
           }
         }
       }
-
+      const updateGameStatistics = async (
+        scoreState: number,
+        enemiesKilledWithLaserState: number,
+        enemiesCollidedWithState: number,
+        totalFriendlyPassedState: number
+      ) => {
+        await updateGameStats(
+          scoreState,
+          enemiesKilledWithLaserState,
+          enemiesCollidedWithState,
+          totalFriendlyPassedState
+        );
+      };
       const Game = () => {
         const gameRef = useRef<HTMLDivElement>(null);
         const [game, setGame] = useState<Phaser.Game | null>(null);
         const [gameStarted, setGameStarted] = useAtom(gameStartedAtom);
         const [isGamePaused, setIsGamePaused] = useAtom(gamePausedAtom);
-
+        const [viewportDimensions, setViewportDimensions] = useAtom(
+          viewportDimensionsAtom
+        );
         const [loggedIn, setLoggedIn] = useState(true);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
@@ -960,14 +1003,14 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(
-                await updateGameStats(
-                  scoreState,
-                  enemiesKilledWithLaserState,
-                  enemiesCollidedWithState,
-                  totalFriendlyPassedState
-                )
-              );
+              // console.log(
+              //   await updateGameStats(
+              //     scoreState,
+              //     enemiesKilledWithLaserState,
+              //     enemiesCollidedWithState,
+              //     totalFriendlyPassedState
+              //   )
+              // );
 
               await updateAchievements({
                 score: scoreState,
@@ -1007,20 +1050,21 @@ const GameComponent = dynamic(
             // console.log("No scene found");
           }
         }, [isGamePaused, game]);
-        useEffect(() => {
-          const resizeGame = () => {
-            setWidth(window.innerWidth - sideBarWidth);
-            setHeight(window.innerHeight);
-            if (gameRef.current && game) {
-              game.scale.resize(width, height);
-            }
-          };
+        // useEffect(() => {
+        //   const resizeGame = () => {
+        //     setWidth(window.innerWidth);
+        //     setHeight(window.innerHeight);
+        //     setViewportDimensions([window.innerWidth, window.innerHeight]);
+        //     if (gameRef.current && game) {
+        //       game.scale.resize(width, height);
+        //     }
+        //   };
 
-          window.addEventListener("resize", resizeGame);
-          return () => {
-            window.removeEventListener("resize", resizeGame);
-          };
-        }, [game, width, height]);
+        //   window.addEventListener("resize", resizeGame);
+        //   return () => {
+        //     window.removeEventListener("resize", resizeGame);
+        //   };
+        // }, [game, width, height, setWidth, setHeight, setViewportDimensions]);
 
         return (
           <div
@@ -1106,7 +1150,7 @@ const GameComponent = dynamic(
                   seconds.
                   <br />
                   {
-                    "Use `H` or `left arrow` key to move left, and `L` or `right arrow` key to move right. Use `F` or or `backspace` key to fire a laser. Use `spacebar` key to pause at any time."
+                    "Use `H` or `left arrow` to move left, and `L` or `right arrow` to move right. Use `F` or `backspace` to fire a laser. Use `spacebar` to pause. Use `:wq` to save and exit."
                   }
                 </div>
                 <button
@@ -1117,9 +1161,15 @@ const GameComponent = dynamic(
                 </button>
               </div>
             ) : (
-              <Link href="/auth/ui/signup" replace>
-                Login
-              </Link>
+              <>
+                <Link
+                  href="/auth/ui/signup"
+                  replace
+                  className="text-zinc-800 bg-green-500 hover:scale-110 text-xl font-bold py-2 px-4 rounded-xl cursor-pointer transition-all"
+                >
+                  Sign-In
+                </Link>
+              </>
             )}
             {gameStarted && <div ref={gameRef}></div>}
           </div>

@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 
-export const viewportDimensionsAtom = atom({ width: 800, height: 600 });
+export const viewportDimensionsAtom = atom([1100, 800]);
 export const gamePausedAtom = atom(false);
 export const gameStartedAtom = atom(false);
 export const scoreAtom = atom(0);
