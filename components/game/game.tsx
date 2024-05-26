@@ -908,7 +908,7 @@ const GameComponent = dynamic(
         const [viewportDimensions, setViewportDimensions] = useAtom(
           viewportDimensionsAtom
         );
-        const [loggedIn, setLoggedIn] = useState(true);
+        const [loggedIn, setLoggedIn] = useState(false);
 
         const [scoreState, setScoreState] = useAtom(scoreAtom);
         const [enemiesKilledWithLaserState, setEnemiesKilledWithLaserState] =
