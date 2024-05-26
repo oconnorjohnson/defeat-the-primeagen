@@ -14,7 +14,7 @@ export default function Root() {
           priority
         />
         <div className="absolute top-0 left-0 w-full h-full z-10">
-          Come back on a laptop or desktop to play the game.
+          Come back on a real computer to play the game.
         </div>
       </div>
       <div className="hidden lg:block lg:relative w-full h-screen overflow-hidden">
