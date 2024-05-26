@@ -847,6 +847,12 @@ const GameComponent = dynamic(
                 const totalGameTime = this.gameEndTime - this.gameStartTime;
                 this.stopLaserResetTimer();
                 player.setTint(0xff0000);
+                updateGameStatistics(
+                  this.score,
+                  this.enemiesKilledWithLaser,
+                  this.enemiesHit,
+                  this.totalFriendliesPassed
+                );
                 this.add
                   .text(
                     this.scale.width / 2,
@@ -880,7 +886,19 @@ const GameComponent = dynamic(
           }
         }
       }
-
+      const updateGameStatistics = async (
+        scoreState: number,
+        enemiesKilledWithLaserState: number,
+        enemiesCollidedWithState: number,
+        totalFriendlyPassedState: number
+      ) => {
+        await updateGameStats(
+          scoreState,
+          enemiesKilledWithLaserState,
+          enemiesCollidedWithState,
+          totalFriendlyPassedState
+        );
+      };
       const Game = () => {
         const gameRef = useRef<HTMLDivElement>(null);
         const [game, setGame] = useState<Phaser.Game | null>(null);
@@ -984,14 +1002,14 @@ const GameComponent = dynamic(
                 acceptanceRateState
               );
               // update DB here
-              console.log(
-                await updateGameStats(
-                  scoreState,
-                  enemiesKilledWithLaserState,
-                  enemiesCollidedWithState,
-                  totalFriendlyPassedState
-                )
-              );
+              // console.log(
+              //   await updateGameStats(
+              //     scoreState,
+              //     enemiesKilledWithLaserState,
+              //     enemiesCollidedWithState,
+              //     totalFriendlyPassedState
+              //   )
+              // );
 
               await updateAchievements({
                 score: scoreState,
