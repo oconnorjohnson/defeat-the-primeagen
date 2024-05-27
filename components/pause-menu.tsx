@@ -138,50 +138,7 @@ export default function PauseMenu() {
             <div className="flex flex-col py-2 px-6 text-xl font-semibold text-zinc-800">
               Your Achievements
               <div className="font-medium text-lg">
-                <div className="w-full h-[100px]">
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                  <div>
-                    Enemies Killed:{" "}
-                    <span className="font-light">
-                      {enemiesKilledWithLaserState}
-                    </span>
-                  </div>
-                </div>
+                <div className="w-full h-[100px]"></div>
               </div>
             </div>
 

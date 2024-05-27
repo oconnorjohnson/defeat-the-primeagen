@@ -1171,6 +1171,17 @@ const GameComponent = dynamic(
                 </Link>
               </>
             )}
+            {/* {!gameStarted && !loggedIn (
+              <>
+              <Link
+                href="/auth/ui/signup"
+                replace
+                className="text-zinc-800 bg-green-500 hover:scale-110 text-xl font-bold py-2 px-4 rounded-xl cursor-pointer transition-all"
+              >
+                Sign-In
+              </Link>
+            </>
+            )} */}
             {gameStarted && <div ref={gameRef}></div>}
           </div>
         );
